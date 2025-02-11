@@ -1,0 +1,758 @@
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"/><title>Analyzing Floating Point Errors and Finite Difference Methods</title><style>
+/* cspell:disable-file */
+/* webkit printing magic: print all background colors */
+html {
+	-webkit-print-color-adjust: exact;
+}
+* {
+	box-sizing: border-box;
+	-webkit-print-color-adjust: exact;
+}
+
+html,
+body {
+	margin: 0;
+	padding: 0;
+}
+@media only screen {
+	body {
+		margin: 2em auto;
+		max-width: 900px;
+		color: rgb(55, 53, 47);
+	}
+}
+
+body {
+	line-height: 1.5;
+	white-space: pre-wrap;
+}
+
+a,
+a.visited {
+	color: inherit;
+	text-decoration: underline;
+}
+
+.pdf-relative-link-path {
+	font-size: 80%;
+	color: #444;
+}
+
+h1,
+h2,
+h3 {
+	letter-spacing: -0.01em;
+	line-height: 1.2;
+	font-weight: 600;
+	margin-bottom: 0;
+}
+
+.page-title {
+	font-size: 2.5rem;
+	font-weight: 700;
+	margin-top: 0;
+	margin-bottom: 0.75em;
+}
+
+h1 {
+	font-size: 1.875rem;
+	margin-top: 1.875rem;
+}
+
+h2 {
+	font-size: 1.5rem;
+	margin-top: 1.5rem;
+}
+
+h3 {
+	font-size: 1.25rem;
+	margin-top: 1.25rem;
+}
+
+.source {
+	border: 1px solid #ddd;
+	border-radius: 3px;
+	padding: 1.5em;
+	word-break: break-all;
+}
+
+.callout {
+	border-radius: 3px;
+	padding: 1rem;
+}
+
+figure {
+	margin: 1.25em 0;
+	page-break-inside: avoid;
+}
+
+figcaption {
+	opacity: 0.5;
+	font-size: 85%;
+	margin-top: 0.5em;
+}
+
+mark {
+	background-color: transparent;
+}
+
+.indented {
+	padding-left: 1.5em;
+}
+
+hr {
+	background: transparent;
+	display: block;
+	width: 100%;
+	height: 1px;
+	visibility: visible;
+	border: none;
+	border-bottom: 1px solid rgba(55, 53, 47, 0.09);
+}
+
+img {
+	max-width: 100%;
+}
+
+@media only print {
+	img {
+		max-height: 100vh;
+		object-fit: contain;
+	}
+}
+
+@page {
+	margin: 1in;
+}
+
+.collection-content {
+	font-size: 0.875rem;
+}
+
+.column-list {
+	display: flex;
+	justify-content: space-between;
+}
+
+.column {
+	padding: 0 1em;
+}
+
+.column:first-child {
+	padding-left: 0;
+}
+
+.column:last-child {
+	padding-right: 0;
+}
+
+.table_of_contents-item {
+	display: block;
+	font-size: 0.875rem;
+	line-height: 1.3;
+	padding: 0.125rem;
+}
+
+.table_of_contents-indent-1 {
+	margin-left: 1.5rem;
+}
+
+.table_of_contents-indent-2 {
+	margin-left: 3rem;
+}
+
+.table_of_contents-indent-3 {
+	margin-left: 4.5rem;
+}
+
+.table_of_contents-link {
+	text-decoration: none;
+	opacity: 0.7;
+	border-bottom: 1px solid rgba(55, 53, 47, 0.18);
+}
+
+table,
+th,
+td {
+	border: 1px solid rgba(55, 53, 47, 0.09);
+	border-collapse: collapse;
+}
+
+table {
+	border-left: none;
+	border-right: none;
+}
+
+th,
+td {
+	font-weight: normal;
+	padding: 0.25em 0.5em;
+	line-height: 1.5;
+	min-height: 1.5em;
+	text-align: left;
+}
+
+th {
+	color: rgba(55, 53, 47, 0.6);
+}
+
+ol,
+ul {
+	margin: 0;
+	margin-block-start: 0.6em;
+	margin-block-end: 0.6em;
+}
+
+li > ol:first-child,
+li > ul:first-child {
+	margin-block-start: 0.6em;
+}
+
+ul > li {
+	list-style: disc;
+}
+
+ul.to-do-list {
+	padding-inline-start: 0;
+}
+
+ul.to-do-list > li {
+	list-style: none;
+}
+
+.to-do-children-checked {
+	text-decoration: line-through;
+	opacity: 0.375;
+}
+
+ul.toggle > li {
+	list-style: none;
+}
+
+ul {
+	padding-inline-start: 1.7em;
+}
+
+ul > li {
+	padding-left: 0.1em;
+}
+
+ol {
+	padding-inline-start: 1.6em;
+}
+
+ol > li {
+	padding-left: 0.2em;
+}
+
+.mono ol {
+	padding-inline-start: 2em;
+}
+
+.mono ol > li {
+	text-indent: -0.4em;
+}
+
+.toggle {
+	padding-inline-start: 0em;
+	list-style-type: none;
+}
+
+/* Indent toggle children */
+.toggle > li > details {
+	padding-left: 1.7em;
+}
+
+.toggle > li > details > summary {
+	margin-left: -1.1em;
+}
+
+.selected-value {
+	display: inline-block;
+	padding: 0 0.5em;
+	background: rgba(206, 205, 202, 0.5);
+	border-radius: 3px;
+	margin-right: 0.5em;
+	margin-top: 0.3em;
+	margin-bottom: 0.3em;
+	white-space: nowrap;
+}
+
+.collection-title {
+	display: inline-block;
+	margin-right: 1em;
+}
+
+.page-description {
+	margin-bottom: 2em;
+}
+
+.simple-table {
+	margin-top: 1em;
+	font-size: 0.875rem;
+	empty-cells: show;
+}
+.simple-table td {
+	height: 29px;
+	min-width: 120px;
+}
+
+.simple-table th {
+	height: 29px;
+	min-width: 120px;
+}
+
+.simple-table-header-color {
+	background: rgb(247, 246, 243);
+	color: black;
+}
+.simple-table-header {
+	font-weight: 500;
+}
+
+time {
+	opacity: 0.5;
+}
+
+.icon {
+	display: inline-block;
+	max-width: 1.2em;
+	max-height: 1.2em;
+	text-decoration: none;
+	vertical-align: text-bottom;
+	margin-right: 0.5em;
+}
+
+img.icon {
+	border-radius: 3px;
+}
+
+.user-icon {
+	width: 1.5em;
+	height: 1.5em;
+	border-radius: 100%;
+	margin-right: 0.5rem;
+}
+
+.user-icon-inner {
+	font-size: 0.8em;
+}
+
+.text-icon {
+	border: 1px solid #000;
+	text-align: center;
+}
+
+.page-cover-image {
+	display: block;
+	object-fit: cover;
+	width: 100%;
+	max-height: 30vh;
+}
+
+.page-header-icon {
+	font-size: 3rem;
+	margin-bottom: 1rem;
+}
+
+.page-header-icon-with-cover {
+	margin-top: -0.72em;
+	margin-left: 0.07em;
+}
+
+.page-header-icon img {
+	border-radius: 3px;
+}
+
+.link-to-page {
+	margin: 1em 0;
+	padding: 0;
+	border: none;
+	font-weight: 500;
+}
+
+p > .user {
+	opacity: 0.5;
+}
+
+td > .user,
+td > time {
+	white-space: nowrap;
+}
+
+input[type="checkbox"] {
+	transform: scale(1.5);
+	margin-right: 0.6em;
+	vertical-align: middle;
+}
+
+p {
+	margin-top: 0.5em;
+	margin-bottom: 0.5em;
+}
+
+.image {
+	border: none;
+	margin: 1.5em 0;
+	padding: 0;
+	border-radius: 0;
+	text-align: center;
+}
+
+.code,
+code {
+	background: rgba(135, 131, 120, 0.15);
+	border-radius: 3px;
+	padding: 0.2em 0.4em;
+	border-radius: 3px;
+	font-size: 85%;
+	tab-size: 2;
+}
+
+code {
+	color: #eb5757;
+}
+
+.code {
+	padding: 1.5em 1em;
+}
+
+.code-wrap {
+	white-space: pre-wrap;
+	word-break: break-all;
+}
+
+.code > code {
+	background: none;
+	padding: 0;
+	font-size: 100%;
+	color: inherit;
+}
+
+blockquote {
+	font-size: 1.25em;
+	margin: 1em 0;
+	padding-left: 1em;
+	border-left: 3px solid rgb(55, 53, 47);
+}
+
+.bookmark {
+	text-decoration: none;
+	max-height: 8em;
+	padding: 0;
+	display: flex;
+	width: 100%;
+	align-items: stretch;
+}
+
+.bookmark-title {
+	font-size: 0.85em;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	height: 1.75em;
+	white-space: nowrap;
+}
+
+.bookmark-text {
+	display: flex;
+	flex-direction: column;
+}
+
+.bookmark-info {
+	flex: 4 1 180px;
+	padding: 12px 14px 14px;
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+}
+
+.bookmark-image {
+	width: 33%;
+	flex: 1 1 180px;
+	display: block;
+	position: relative;
+	object-fit: cover;
+	border-radius: 1px;
+}
+
+.bookmark-description {
+	color: rgba(55, 53, 47, 0.6);
+	font-size: 0.75em;
+	overflow: hidden;
+	max-height: 4.5em;
+	word-break: break-word;
+}
+
+.bookmark-href {
+	font-size: 0.75em;
+	margin-top: 0.25em;
+}
+
+.sans { font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol"; }
+.code { font-family: "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace; }
+.serif { font-family: Lyon-Text, Georgia, ui-serif, serif; }
+.mono { font-family: iawriter-mono, Nitti, Menlo, Courier, monospace; }
+.pdf .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK JP'; }
+.pdf:lang(zh-CN) .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK SC'; }
+.pdf:lang(zh-TW) .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK TC'; }
+.pdf:lang(ko-KR) .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK KR'; }
+.pdf .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK JP'; }
+.pdf:lang(zh-CN) .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK SC'; }
+.pdf:lang(zh-TW) .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK TC'; }
+.pdf:lang(ko-KR) .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK KR'; }
+.pdf .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK JP'; }
+.pdf:lang(zh-CN) .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK SC'; }
+.pdf:lang(zh-TW) .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK TC'; }
+.pdf:lang(ko-KR) .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK KR'; }
+.pdf .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK JP'; }
+.pdf:lang(zh-CN) .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK SC'; }
+.pdf:lang(zh-TW) .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK TC'; }
+.pdf:lang(ko-KR) .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK KR'; }
+.highlight-default {
+	color: rgba(55, 53, 47, 1);
+}
+.highlight-gray {
+	color: rgba(120, 119, 116, 1);
+	fill: rgba(120, 119, 116, 1);
+}
+.highlight-brown {
+	color: rgba(159, 107, 83, 1);
+	fill: rgba(159, 107, 83, 1);
+}
+.highlight-orange {
+	color: rgba(217, 115, 13, 1);
+	fill: rgba(217, 115, 13, 1);
+}
+.highlight-yellow {
+	color: rgba(203, 145, 47, 1);
+	fill: rgba(203, 145, 47, 1);
+}
+.highlight-teal {
+	color: rgba(68, 131, 97, 1);
+	fill: rgba(68, 131, 97, 1);
+}
+.highlight-blue {
+	color: rgba(51, 126, 169, 1);
+	fill: rgba(51, 126, 169, 1);
+}
+.highlight-purple {
+	color: rgba(144, 101, 176, 1);
+	fill: rgba(144, 101, 176, 1);
+}
+.highlight-pink {
+	color: rgba(193, 76, 138, 1);
+	fill: rgba(193, 76, 138, 1);
+}
+.highlight-red {
+	color: rgba(212, 76, 71, 1);
+	fill: rgba(212, 76, 71, 1);
+}
+.highlight-default_background {
+	color: rgba(55, 53, 47, 1);
+}
+.highlight-gray_background {
+	background: rgba(241, 241, 239, 1);
+}
+.highlight-brown_background {
+	background: rgba(244, 238, 238, 1);
+}
+.highlight-orange_background {
+	background: rgba(251, 236, 221, 1);
+}
+.highlight-yellow_background {
+	background: rgba(251, 243, 219, 1);
+}
+.highlight-teal_background {
+	background: rgba(237, 243, 236, 1);
+}
+.highlight-blue_background {
+	background: rgba(231, 243, 248, 1);
+}
+.highlight-purple_background {
+	background: rgba(244, 240, 247, 0.8);
+}
+.highlight-pink_background {
+	background: rgba(249, 238, 243, 0.8);
+}
+.highlight-red_background {
+	background: rgba(253, 235, 236, 1);
+}
+.block-color-default {
+	color: inherit;
+	fill: inherit;
+}
+.block-color-gray {
+	color: rgba(120, 119, 116, 1);
+	fill: rgba(120, 119, 116, 1);
+}
+.block-color-brown {
+	color: rgba(159, 107, 83, 1);
+	fill: rgba(159, 107, 83, 1);
+}
+.block-color-orange {
+	color: rgba(217, 115, 13, 1);
+	fill: rgba(217, 115, 13, 1);
+}
+.block-color-yellow {
+	color: rgba(203, 145, 47, 1);
+	fill: rgba(203, 145, 47, 1);
+}
+.block-color-teal {
+	color: rgba(68, 131, 97, 1);
+	fill: rgba(68, 131, 97, 1);
+}
+.block-color-blue {
+	color: rgba(51, 126, 169, 1);
+	fill: rgba(51, 126, 169, 1);
+}
+.block-color-purple {
+	color: rgba(144, 101, 176, 1);
+	fill: rgba(144, 101, 176, 1);
+}
+.block-color-pink {
+	color: rgba(193, 76, 138, 1);
+	fill: rgba(193, 76, 138, 1);
+}
+.block-color-red {
+	color: rgba(212, 76, 71, 1);
+	fill: rgba(212, 76, 71, 1);
+}
+.block-color-default_background {
+	color: inherit;
+	fill: inherit;
+}
+.block-color-gray_background {
+	background: rgba(241, 241, 239, 1);
+}
+.block-color-brown_background {
+	background: rgba(244, 238, 238, 1);
+}
+.block-color-orange_background {
+	background: rgba(251, 236, 221, 1);
+}
+.block-color-yellow_background {
+	background: rgba(251, 243, 219, 1);
+}
+.block-color-teal_background {
+	background: rgba(237, 243, 236, 1);
+}
+.block-color-blue_background {
+	background: rgba(231, 243, 248, 1);
+}
+.block-color-purple_background {
+	background: rgba(244, 240, 247, 0.8);
+}
+.block-color-pink_background {
+	background: rgba(249, 238, 243, 0.8);
+}
+.block-color-red_background {
+	background: rgba(253, 235, 236, 1);
+}
+.select-value-color-uiBlue { background-color: rgba(35, 131, 226, .07); }
+.select-value-color-pink { background-color: rgba(245, 224, 233, 1); }
+.select-value-color-purple { background-color: rgba(232, 222, 238, 1); }
+.select-value-color-green { background-color: rgba(219, 237, 219, 1); }
+.select-value-color-gray { background-color: rgba(227, 226, 224, 1); }
+.select-value-color-transparentGray { background-color: rgba(227, 226, 224, 0); }
+.select-value-color-translucentGray { background-color: rgba(0, 0, 0, 0.06); }
+.select-value-color-orange { background-color: rgba(250, 222, 201, 1); }
+.select-value-color-brown { background-color: rgba(238, 224, 218, 1); }
+.select-value-color-red { background-color: rgba(255, 226, 221, 1); }
+.select-value-color-yellow { background-color: rgba(253, 236, 200, 1); }
+.select-value-color-blue { background-color: rgba(211, 229, 239, 1); }
+.select-value-color-pageGlass { background-color: undefined; }
+.select-value-color-washGlass { background-color: undefined; }
+
+.checkbox {
+	display: inline-flex;
+	vertical-align: text-bottom;
+	width: 16;
+	height: 16;
+	background-size: 16px;
+	margin-left: 2px;
+	margin-right: 5px;
+}
+
+.checkbox-on {
+	background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%0A%3Crect%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22%2358A9D7%22%2F%3E%0A%3Cpath%20d%3D%22M6.71429%2012.2852L14%204.9995L12.7143%203.71436L6.71429%209.71378L3.28571%206.2831L2%207.57092L6.71429%2012.2852Z%22%20fill%3D%22white%22%2F%3E%0A%3C%2Fsvg%3E");
+}
+
+.checkbox-off {
+	background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%0A%3Crect%20x%3D%220.75%22%20y%3D%220.75%22%20width%3D%2214.5%22%20height%3D%2214.5%22%20fill%3D%22white%22%20stroke%3D%22%2336352F%22%20stroke-width%3D%221.5%22%2F%3E%0A%3C%2Fsvg%3E");
+}
+	
+</style></head><body><article id="12917eee-0cbb-804b-9477-ff81c1214665" class="page sans"><header><img class="page-cover-image" src="https://www.notion.so/images/page-cover/gradients_11.jpg" style="object-position:center 23.2%"/><div class="page-header-icon page-header-icon-with-cover"><img class="icon" src="https://www.notion.so/icons/mathematics_gray.svg"/></div><h1 class="page-title">Analyzing Floating Point Errors and Finite Difference Methods</h1><p class="page-description"></p></header><div class="page-body"><p id="12917eee-0cbb-8016-a932-e26ad2fa2e26" class="">
+</p><div id="12917eee-0cbb-80fa-8358-c539b5b08abd" class="column-list"><div id="12917eee-0cbb-8041-a4f9-f1d4ffabea64" style="width:43.75%" class="column"><nav id="12917eee-0cbb-8086-9987-cc18bec17ec5" class="block-color-gray table_of_contents"><div class="table_of_contents-item table_of_contents-indent-0"><a class="table_of_contents-link" href="#12917eee-0cbb-807f-aa28-d6e3770dbf1c">Introduction</a></div><div class="table_of_contents-item table_of_contents-indent-0"><a class="table_of_contents-link" href="#12917eee-0cbb-8038-b7ed-c051be1bbc01">Floating Point Arithmetic Errors</a></div><div class="table_of_contents-item table_of_contents-indent-1"><a class="table_of_contents-link" href="#12917eee-0cbb-8012-a4bd-dedd7699389a">Inaccuracy Due to Finite Precision</a></div><div class="table_of_contents-item table_of_contents-indent-0"><a class="table_of_contents-link" href="#12a17eee-0cbb-80f6-9df5-e48aeee53ce5">Rounding Errors</a></div><div class="table_of_contents-item table_of_contents-indent-1"><a class="table_of_contents-link" href="#12a17eee-0cbb-8067-afe0-cac1f0155e8a">Repeating Decimals</a></div><div class="table_of_contents-item table_of_contents-indent-1"><a class="table_of_contents-link" href="#684a35ff-fcbb-4473-86a1-0ea833681b32">Addition/Subtraction Precision Loss</a></div><div class="table_of_contents-item table_of_contents-indent-1"><a class="table_of_contents-link" href="#12a17eee-0cbb-80a1-8d79-ec505f735eac">Addition of Small and Large Numbers</a></div><div class="table_of_contents-item table_of_contents-indent-1"><a class="table_of_contents-link" href="#8251afc2-3ed4-4f61-990b-d46d360744b5">Accumulation of Small Rounding Errors</a></div><div class="table_of_contents-item table_of_contents-indent-0"><a class="table_of_contents-link" href="#12a17eee-0cbb-8002-a097-ca5f6e55e25e">Underflow Errors</a></div><div class="table_of_contents-item table_of_contents-indent-1"><a class="table_of_contents-link" href="#12a17eee-0cbb-809a-b688-d09ad21d671f">Subtracting Very Small Numbers</a></div><div class="table_of_contents-item table_of_contents-indent-1"><a class="table_of_contents-link" href="#12a17eee-0cbb-802a-91e1-f0d71632d465">Multiplying Small Numbers</a></div><div class="table_of_contents-item table_of_contents-indent-1"><a class="table_of_contents-link" href="#12a17eee-0cbb-80d5-b199-ca59928b818b">Adding Large and Small Numbers</a></div><div class="table_of_contents-item table_of_contents-indent-1"><a class="table_of_contents-link" href="#12a17eee-0cbb-8088-8ac7-fc08ad9af80c">Exponential Function with Large Negative Input</a></div><div class="table_of_contents-item table_of_contents-indent-0"><a class="table_of_contents-link" href="#12a17eee-0cbb-80e9-a38b-cf1e17afa4b5">Overflow Errors</a></div><div class="table_of_contents-item table_of_contents-indent-1"><a class="table_of_contents-link" href="#12a17eee-0cbb-80f2-bb05-db09a401616f">Adding Large Numbers</a></div><div class="table_of_contents-item table_of_contents-indent-1"><a class="table_of_contents-link" href="#12a17eee-0cbb-8013-89e1-df25128b57dd">Multiplying Large Numbers</a></div><div class="table_of_contents-item table_of_contents-indent-0"><a class="table_of_contents-link" href="#12917eee-0cbb-8088-9210-fff00ba85db8">Finite Differences</a></div><div class="table_of_contents-item table_of_contents-indent-1"><a class="table_of_contents-link" href="#12917eee-0cbb-80d2-bd06-cc7544ccf9fa">Overview of Finite Difference Methods</a></div><div class="table_of_contents-item table_of_contents-indent-1"><a class="table_of_contents-link" href="#12917eee-0cbb-801c-8263-fd830640cae8">Finite Difference Formulas with Different Precision</a></div><div class="table_of_contents-item table_of_contents-indent-1"><a class="table_of_contents-link" href="#12917eee-0cbb-80ca-8f23-ee6a0f42e90e">Low Order Precision Formulas</a></div><div class="table_of_contents-item table_of_contents-indent-1"><a class="table_of_contents-link" href="#12917eee-0cbb-80e0-8c59-c3d839dfd053">High Order Precision Formulas</a></div><div class="table_of_contents-item table_of_contents-indent-0"><a class="table_of_contents-link" href="#12917eee-0cbb-80c2-b697-f8d792742a7c">Visualization of Errors</a></div><div class="table_of_contents-item table_of_contents-indent-0"><a class="table_of_contents-link" href="#12917eee-0cbb-80fc-b8d5-de01887d8b07"><strong>Polynomial Function</strong></a></div><div class="table_of_contents-item table_of_contents-indent-1"><a class="table_of_contents-link" href="#12917eee-0cbb-80b9-9fc4-c620352d9c0a">Tangent Line</a></div><div class="table_of_contents-item table_of_contents-indent-1"><a class="table_of_contents-link" href="#12917eee-0cbb-8060-9a5d-c4afcef63848">Derivative Graph</a></div><div class="table_of_contents-item table_of_contents-indent-1"><a class="table_of_contents-link" href="#12917eee-0cbb-806f-a10d-f00292a3fe37">Error Graph</a></div><div class="table_of_contents-item table_of_contents-indent-0"><a class="table_of_contents-link" href="#12917eee-0cbb-803c-bcdb-db5778cf8b6d">Trigonometric Function</a></div><div class="table_of_contents-item table_of_contents-indent-1"><a class="table_of_contents-link" href="#12917eee-0cbb-80c4-be40-dc7b7b0558a1">Tangent Line</a></div><div class="table_of_contents-item table_of_contents-indent-1"><a class="table_of_contents-link" href="#12917eee-0cbb-80a5-82d5-ec2a9b6bba92">Derivative Graph</a></div><div class="table_of_contents-item table_of_contents-indent-1"><a class="table_of_contents-link" href="#12917eee-0cbb-8064-839f-ee3fcff2788a">Error Graph</a></div><div class="table_of_contents-item table_of_contents-indent-0"><a class="table_of_contents-link" href="#12917eee-0cbb-8074-b3fc-e808a28ec334">Conclusion</a></div></nav></div><div id="12917eee-0cbb-8021-b957-d11392f09152" style="width:56.25%" class="column"><h2 id="12917eee-0cbb-807f-aa28-d6e3770dbf1c" class="">Introduction</h2><p id="12a17eee-0cbb-80f3-be79-ec1838fe9f95" class="">Floating point arithmetic is essential in computer science and numerical analysis for representing and manipulating real numbers. However, its limitations can lead to various errors and inaccuracies in calculations. This section explores these errors and their implications for computational accuracy.</p><p id="12a17eee-0cbb-803c-8dd8-ee8fa46a5f46" class="">Before diving into specific floating point errors, it’s important to understand finite difference methods. These numerical techniques approximate function derivatives and are widely used in fields like physics, engineering, and finance. Finite difference methods replace continuous derivatives with discrete approximations based on nearby function values.</p><p id="12a17eee-0cbb-80d9-99e6-ca88c4c3cd09" class="">While useful for complex functions or when analytical solutions are difficult, the accuracy of finite difference methods can be compromised by the same floating point errors discussed in this section. Understanding both floating point arithmetic and finite difference methods is crucial for developing reliable numerical algorithms and interpreting results accurately</p><p id="12a17eee-0cbb-80a3-a89d-d6486f2641ec" class="">
+</p></div></div><hr id="12917eee-0cbb-806f-a924-f59c23571120"/><h2 id="12917eee-0cbb-8038-b7ed-c051be1bbc01" class="">Floating Point Arithmetic Errors</h2><h3 id="12917eee-0cbb-8012-a4bd-dedd7699389a" class="">Inaccuracy Due to Finite Precision</h3><p id="12a17eee-0cbb-8010-b46e-eb31d4f4de3e" class="">Computers represent numbers using a limited number of bits, which leads to <strong>finite precision</strong> and can cause inaccuracies. In <strong>floating-point representation</strong>, numbers are stored with a mantissa and exponent, but not all real numbers can be exactly represented. This results in <strong>rounding errors</strong>, where numbers are approximated, especially when adding or subtracting values of different magnitudes.</p><p id="12a17eee-0cbb-8050-a744-f0b7bce01662" class=""><strong>Rounding, underflow, and overflow</strong> are common issues. <strong>Round-off errors</strong> occur when numbers are rounded to fit within precision limits, while <strong>underflow</strong> causes very small numbers to be represented as zero and <strong>overflow</strong> happens when numbers exceed the representable range.</p><p id="12a17eee-0cbb-8078-b40b-ca1891111745" class="">Finite precision can even violate basic properties like the <strong>associative property</strong> of addition, where:</p><figure id="12a17eee-0cbb-8022-9afe-f28472ba10cf" class="equation"><style>@import url('https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css')</style><div class="equation-container"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mo stretchy="false">(</mo><mi>a</mi><mo>+</mo><mi>b</mi><mo stretchy="false">)</mo><mo>+</mo><mi>c</mi><mo>=</mo><mi>a</mi><mo>+</mo><mo stretchy="false">(</mo><mi>b</mi><mo>+</mo><mi>c</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">(a+b)+c=a+(b+c)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord mathnormal">a</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal">b</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">c</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6667em;vertical-align:-0.0833em;"></span><span class="mord mathnormal">a</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord mathnormal">b</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal">c</span><span class="mclose">)</span></span></span></span></span></div></figure><h2 id="12a17eee-0cbb-80f6-9df5-e48aeee53ce5" class="">Rounding Errors</h2><p id="12a17eee-0cbb-80b8-8f24-c885afb7f541" class="">Here’s a list of examples that demonstrate rounding errors due to finite precision:</p><div id="12a17eee-0cbb-8059-8a64-d4033ac9842e" class="column-list"><div id="12a17eee-0cbb-80b4-904e-dce52ac361f7" style="width:50.000000000000014%" class="column"><h3 id="12a17eee-0cbb-8067-afe0-cac1f0155e8a" class="">Repeating Decimals</h3><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="12a17eee-0cbb-80c3-be14-e33a472c5c06" class="code"><code class="language-Python" style="white-space:pre-wrap;word-break:break-all">repeating_decimal = 1 / 3
+print(f&quot;Example 2: 1/3 = {repeating_decimal:.30f}&quot;)  # Show 30 decimal places
+# Example 2: 1/3 = 0.333333333333333314829616256247</code></pre><p id="12a17eee-0cbb-80d5-ad17-fb9f1d944dea" class="">After first 15 places float point number is completely inaccurate.</p></div><div id="12a17eee-0cbb-803c-8f32-cecf063b51e9" style="width:50%" class="column"><h3 id="684a35ff-fcbb-4473-86a1-0ea833681b32" class="">Addition/Subtraction Precision Loss</h3><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="c2037db8-564b-46bb-8041-7f5aba202d98" class="code"><code class="language-Python" style="white-space:pre-wrap;word-break:break-all">result_3 = 1.0000001 - 1.0000000
+print(f&quot;Example 3: 1.0000001 - 1.0000000 = {result_3}&quot;)
+# Example 3: 1.0000001 - 1.0000000 = 1.0000000005838672e-07</code></pre><p id="555a6c6a-8ab6-4014-9bf8-a24d36615e42" class="">Result should’ve been <mark class="highlight-gray_background"> 1e-7 </mark>.</p></div></div><div id="12a17eee-0cbb-80ac-af85-fae4cc293687" class="column-list"><div id="12a17eee-0cbb-8037-bd47-e4bf210ab305" style="width:50%" class="column"><h3 id="12a17eee-0cbb-80a1-8d79-ec505f735eac" class="">Addition of Small and Large Numbers</h3><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="12a17eee-0cbb-8025-b0e5-ee0f14ac4ddf" class="code"><code class="language-Python" style="white-space:pre-wrap;word-break:break-all">large_number = 1.0
+small_number = 1e-16
+result_1 = large_number + small_number
+print(f&quot;Example 1: {large_number} + {small_number} = {result_1}&quot;) 
+# Example 1: 1.0 + 1e-16 = 1.0</code></pre><p id="12a17eee-0cbb-80db-9343-eb580eb4d431" class="">Completely disregards smaller number.</p></div><div id="12a17eee-0cbb-80da-80c7-f838ee11fe9b" style="width:50%" class="column"><h3 id="8251afc2-3ed4-4f61-990b-d46d360744b5" class="">Accumulation of Small Rounding Errors</h3><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="87f45e7b-c7fe-48c4-9efe-29048e9f8fdc" class="code"><code class="language-Python" style="white-space:pre-wrap;word-break:break-all">a = 1e16
+b = -1e16
+c = 1.0
+result1 = (a + b) + c
+result2 = a + (b + c)
+print(f&quot;Example 4: ((a + b) + c = {result1})&quot;)
+print(f&quot;Example 4: (a + (b + c) = {result2})&quot;)
+# Example 4: ((a + b) + c = 1.0)
+# Example 4: (a + (b + c) = 0.0)</code></pre><p id="110e2996-8ce7-4ed3-bb0f-f57c6c05bc6e" class="">Getting different answers completely.</p></div></div><h2 id="12a17eee-0cbb-8002-a097-ca5f6e55e25e" class="">Underflow Errors</h2><p id="12a17eee-0cbb-80e5-be23-cc94fa2ac0ef" class="">Underflow errors occur in floating-point arithmetic when a calculation results in a number that is smaller than the smallest representable value (the &quot;denormalized&quot; range) for that data type, causing it to be approximated as zero. Here are some examples in Python that illustrate underflow errors:</p><div id="12a17eee-0cbb-8021-be3d-d39f805cf4c1" class="column-list"><div id="12a17eee-0cbb-8081-9001-c31143f76219" style="width:50%" class="column"><div><h3 id="12a17eee-0cbb-809a-b688-d09ad21d671f" class="">Subtracting Very Small Numbers</h3><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="12a17eee-0cbb-80b7-8f0a-e1b94aecbb96" class="code"><code class="language-Python" style="white-space:pre-wrap;word-break:break-all">a = 1e-10
+b = 1e-20
+result = a - b
+print(f&quot;Example 1: {a} - {b} = {result:.20f}\n&quot;)
+# Example 1: 1e-10 - 1e-20 = 0.00000000009999999999</code></pre><p id="12a17eee-0cbb-8068-b517-eea3bda4afe3" class="">Completely wrong result value.</p></div></div><div id="12a17eee-0cbb-8002-9c1c-d3870b5ef4e0" style="width:50%" class="column"><div><h3 id="12a17eee-0cbb-802a-91e1-f0d71632d465" class="">Multiplying Small Numbers</h3><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="12a17eee-0cbb-808f-9c8c-f930c20013a9" class="code"><code class="language-Python" style="white-space:pre-wrap;word-break:break-all">a = 1e-200
+b = 1e-200
+result = a * b
+print(f&quot;Example 2: {a} * {b} = {result:.2000f}\n&quot;)
+# Example 2: 1e-200 * 1e-200 = 0.00000000000000000000...000</code></pre><p id="12a17eee-0cbb-8079-bb0d-fac777bea642" class="">Getting result of 0 instead of <mark class="highlight-gray_background"> 1e-400 </mark>.</p></div></div></div><div id="12a17eee-0cbb-8062-a590-f4f192caa66e" class="column-list"><div id="12a17eee-0cbb-8039-ba92-fcdf38c903b2" style="width:50%" class="column"><div><h3 id="12a17eee-0cbb-80d5-b199-ca59928b818b" class="">Adding Large and Small Numbers</h3><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="12a17eee-0cbb-800a-bdd3-e1e00659f1fb" class="code"><code class="language-Python" style="white-space:pre-wrap;word-break:break-all">large_number = 1e10
+small_number = 1e-10
+result_4 = large_number + small_number
+print(f&quot;Example 3: {large_number} + {small_number} = {result_4:.20f}\n&quot;)
+# Example 3: 10000000000.0 + 1e-10 = 10000000000.00000000000000000000</code></pre><p id="12a17eee-0cbb-80a7-b6b2-c797fab214c8" class="">Disregarding smaller number altogether.</p></div></div><div id="12a17eee-0cbb-80fd-8ecf-cd4809697e84" style="width:50%" class="column"><div><h3 id="12a17eee-0cbb-8088-8ac7-fc08ad9af80c" class="">Exponential Function with Large Negative Input</h3><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="12a17eee-0cbb-8020-9fcb-cdd4a498acd9" class="code"><code class="language-Python" style="white-space:pre-wrap;word-break:break-all">import math
+
+small_value = -1000  # A very small value for exp
+result_5 = math.exp(small_value)
+print(f&quot;Example 4: exp({small_value}) = {result_5:.20f}&quot;)  # This will be close to 0
+# Example 4: exp(-1000) = 0.00000000000000000000...000</code></pre><p id="12a17eee-0cbb-80da-89c2-c87f97438c60" class="">Result is 0.</p></div></div></div><h2 id="12a17eee-0cbb-80e9-a38b-cf1e17afa4b5" class="">Overflow Errors</h2><p id="12a17eee-0cbb-808f-8720-deca180acbdb" class="">An overflow error occurs when a calculation produces a value that exceeds the maximum representable value for a data type.</p><div id="12a17eee-0cbb-8097-87f9-f5c9b022b517" class="column-list"><div id="12a17eee-0cbb-8055-8168-e18a7cba8cd8" style="width:50%" class="column"><div><h3 id="12a17eee-0cbb-80f2-bb05-db09a401616f" class="">Adding Large Numbers</h3><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="12a17eee-0cbb-801c-8a20-f79e9960be87" class="code"><code class="language-Python" style="white-space:pre-wrap;word-break:break-all">a = 1e+308
+b = 1e+308
+result_1 = a + b
+print(f&quot;Example 1: {a} + {b} = {result_1}\n&quot;)
+# Example 1: 1e+308 + 1e+308 = inf</code></pre><p id="12a17eee-0cbb-8041-8812-e58ca7c36424" class="">Result is inf i.e. infinity.</p></div></div><div id="12a17eee-0cbb-808b-8dcc-e69c0169e032" style="width:50%" class="column"><div><h3 id="12a17eee-0cbb-8013-89e1-df25128b57dd" class="">Multiplying Large Numbers</h3><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="12a17eee-0cbb-802b-9b23-c956b1cb8280" class="code"><code class="language-Python" style="white-space:pre-wrap;word-break:break-all">a = 1e+308
+b = 1e+308
+result_2 = a * b
+print(f&quot;Example 2: {a} * {b} = {result_2}\n&quot;)
+# Example 2: 1e+308 * 1e+308 = inf</code></pre><p id="12a17eee-0cbb-808c-acba-c3e479c1fd79" class="">Results in infinity.</p></div><p id="12a17eee-0cbb-809f-98f4-fbb6e72442e8" class="">
+</p></div></div><hr id="12917eee-0cbb-80fb-a19a-f757dee880aa"/><h2 id="12917eee-0cbb-8088-9210-fff00ba85db8" class="">Finite Differences</h2><h3 id="12917eee-0cbb-80d2-bd06-cc7544ccf9fa" class="">Overview of Finite Difference Methods</h3><p id="8fb99029-35cd-4173-a092-b3d24e4dadb7" class="">Finite difference methods are numerical techniques used to approximate derivatives of functions. They replace continuous derivatives with discrete approximations based on function values at nearby points. Common types include forward, backward, and central differences, each with its own advantages and limitations in terms of accuracy and stability.</p><h3 id="12917eee-0cbb-801c-8263-fd830640cae8" class="">Finite Difference Formulas with Different Precision</h3><p id="0c8e376e-93da-4827-af90-69e5988bdf26" class="">These formulas vary in their level of accuracy and computational complexity. Low order precision formulas are simpler and faster to compute but may introduce larger errors, especially for functions with rapid changes. High order precision formulas, while more computationally intensive, often provide more accurate approximations of derivatives, particularly for smooth functions.</p><p id="43e2c239-9ea9-49c5-ac5d-e35e4cb19a4c" class="">The choice between different finite difference formulas depends on the specific problem, desired accuracy, and available computational resources. Let&#x27;s examine some common formulas in more detail:</p><div id="12917eee-0cbb-80f5-ae4a-e99987dfa027" class="column-list"><div id="12917eee-0cbb-80c8-986e-fd5e93aff297" style="width:50%" class="column"><h3 id="12917eee-0cbb-80ca-8f23-ee6a0f42e90e" class="">Low Order Precision Formulas</h3><ul id="12917eee-0cbb-8006-ac10-c3f184ddd307" class="bulleted-list"><li style="list-style-type:disc">Forward Difference<figure id="12917eee-0cbb-8026-b100-e8eb59411978" class="equation"><style>@import url('https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css')</style><div class="equation-container"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msup><mi>f</mi><mo mathvariant="normal" lspace="0em" rspace="0em">′</mo></msup><mo stretchy="false">(</mo><mi>x</mi><mo stretchy="false">)</mo><mo>≈</mo><mfrac><mrow><mi>f</mi><mo stretchy="false">(</mo><mi>x</mi><mo>+</mo><mi>h</mi><mo stretchy="false">)</mo><mo>−</mo><mi>f</mi><mo stretchy="false">(</mo><mi>x</mi><mo stretchy="false">)</mo></mrow><mi>h</mi></mfrac></mrow><annotation encoding="application/x-tex">f&#x27;(x) \approx \frac{f(x+h) - f(x)}{h}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.0519em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.10764em;">f</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8019em;"><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">′</span></span></span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathnormal">x</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">≈</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:2.113em;vertical-align:-0.686em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.427em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal">h</span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.10764em;">f</span><span class="mopen">(</span><span class="mord mathnormal">x</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord mathnormal">h</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord mathnormal" style="margin-right:0.10764em;">f</span><span class="mopen">(</span><span class="mord mathnormal">x</span><span class="mclose">)</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.686em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span></span></span></div></figure></li></ul><ul id="12917eee-0cbb-8073-a917-ee0ce2ee8676" class="bulleted-list"><li style="list-style-type:disc">Backward Difference<figure id="12917eee-0cbb-806b-819c-fdf67d448446" class="equation"><style>@import url('https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css')</style><div class="equation-container"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msup><mi>f</mi><mo mathvariant="normal" lspace="0em" rspace="0em">′</mo></msup><mo stretchy="false">(</mo><mi>x</mi><mo stretchy="false">)</mo><mo>≈</mo><mfrac><mrow><mi>f</mi><mo stretchy="false">(</mo><mi>x</mi><mo stretchy="false">)</mo><mo>−</mo><mi>f</mi><mo stretchy="false">(</mo><mi>x</mi><mo>−</mo><mi>h</mi><mo stretchy="false">)</mo></mrow><mi>h</mi></mfrac></mrow><annotation encoding="application/x-tex">f&#x27;(x) \approx \frac{f(x) - f(x-h)}{h}
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.0519em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.10764em;">f</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8019em;"><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">′</span></span></span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathnormal">x</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">≈</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:2.113em;vertical-align:-0.686em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.427em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal">h</span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.10764em;">f</span><span class="mopen">(</span><span class="mord mathnormal">x</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord mathnormal" style="margin-right:0.10764em;">f</span><span class="mopen">(</span><span class="mord mathnormal">x</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord mathnormal">h</span><span class="mclose">)</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.686em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span></span></span></div></figure><p id="12a17eee-0cbb-8003-90c3-d23e3f439a00" class="">
+</p><p id="12a17eee-0cbb-80ea-9792-c443fb8d621a" class="">
+</p><p id="12a17eee-0cbb-80c6-81ad-e71fa77b84ca" class="">
+</p><p id="12a17eee-0cbb-80ca-92a8-c7d36e201063" class="">
+</p><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="12a17eee-0cbb-80e2-a517-f69efe91e593" class="code"><code class="language-Python" style="white-space:pre-wrap;word-break:break-all">def forward_difference(x, h):
+    return (f(x + h) - f(x)) / h
+
+
+def backward_difference(x, h):
+    return (f(x) - f(x - h)) / h</code></pre><p id="12a17eee-0cbb-8030-8759-faf647ff0f77" class="">
+</p></li></ul></div><div id="12917eee-0cbb-8066-a8e7-ecfefb4a912e" style="width:50%" class="column"><h3 id="12917eee-0cbb-80e0-8c59-c3d839dfd053" class="">High Order Precision Formulas</h3><ul id="12917eee-0cbb-80d1-8997-f42e2ddae7b8" class="bulleted-list"><li style="list-style-type:disc">Central Difference<figure id="fa0c3378-e1e2-4f73-b4ac-8896c32ab2bf" class="equation"><style>@import url('https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css')</style><div class="equation-container"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msup><mi>f</mi><mo mathvariant="normal" lspace="0em" rspace="0em">′</mo></msup><mo stretchy="false">(</mo><mi>x</mi><mo stretchy="false">)</mo><mo>≈</mo><mfrac><mrow><mi>f</mi><mo stretchy="false">(</mo><mi>x</mi><mo>+</mo><mi>h</mi><mo stretchy="false">)</mo><mo>−</mo><mi>f</mi><mo stretchy="false">(</mo><mi>x</mi><mo>−</mo><mi>h</mi><mo stretchy="false">)</mo></mrow><mrow><mn>2</mn><mi>h</mi></mrow></mfrac></mrow><annotation encoding="application/x-tex">f&#x27;(x) \approx \frac{f(x+h) - f(x-h)}{2h}
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.0519em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.10764em;">f</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8019em;"><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">′</span></span></span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathnormal">x</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">≈</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:2.113em;vertical-align:-0.686em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.427em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">2</span><span class="mord mathnormal">h</span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.10764em;">f</span><span class="mopen">(</span><span class="mord mathnormal">x</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord mathnormal">h</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord mathnormal" style="margin-right:0.10764em;">f</span><span class="mopen">(</span><span class="mord mathnormal">x</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord mathnormal">h</span><span class="mclose">)</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.686em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span></span></span></div></figure></li></ul><ul id="12917eee-0cbb-80af-98af-ea31340f5f26" class="bulleted-list"><li style="list-style-type:disc">Richardson Extrapolation<figure id="2d7c14d8-2ac7-4ef2-923f-ea527bd8d45c" class="equation"><style>@import url('https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css')</style><div class="equation-container"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msup><mi>f</mi><mo mathvariant="normal" lspace="0em" rspace="0em">′</mo></msup><mo stretchy="false">(</mo><mi>x</mi><mo stretchy="false">)</mo><mo>≈</mo><mfrac><mrow><mn>4</mn><mo>⋅</mo><mi>A</mi><mo stretchy="false">(</mo><mi>h</mi><mo stretchy="false">)</mo><mo>−</mo><mi>A</mi><mo stretchy="false">(</mo><mn>2</mn><mi>h</mi><mo stretchy="false">)</mo></mrow><mrow><mn>4</mn><mo>−</mo><mn>1</mn></mrow></mfrac></mrow><annotation encoding="application/x-tex">f&#x27;(x) \approx \frac{4 \cdot A(h) - A(2h)}{4 - 1}
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.0519em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.10764em;">f</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8019em;"><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">′</span></span></span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathnormal">x</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">≈</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:2.1963em;vertical-align:-0.7693em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.427em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">4</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord">1</span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">4</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord mathnormal">A</span><span class="mopen">(</span><span class="mord mathnormal">h</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord mathnormal">A</span><span class="mopen">(</span><span class="mord">2</span><span class="mord mathnormal">h</span><span class="mclose">)</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.7693em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span></span></span></div></figure><figure id="12917eee-0cbb-804b-888d-db3088443a48" class="equation"><style>@import url('https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css')</style><div class="equation-container"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>A</mi><mo stretchy="false">(</mo><mi>h</mi><mo stretchy="false">)</mo><mo>=</mo><mfrac><mrow><mi>f</mi><mo stretchy="false">(</mo><mi>x</mi><mo>+</mo><mi>h</mi><mo stretchy="false">)</mo><mo>−</mo><mi>f</mi><mo stretchy="false">(</mo><mi>x</mi><mo>−</mo><mi>h</mi><mo stretchy="false">)</mo></mrow><mrow><mn>2</mn><mi>h</mi></mrow></mfrac></mrow><annotation encoding="application/x-tex">A(h) = \frac{f(x+h) - f(x-h)}{2h}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal">A</span><span class="mopen">(</span><span class="mord mathnormal">h</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:2.113em;vertical-align:-0.686em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.427em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">2</span><span class="mord mathnormal">h</span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.10764em;">f</span><span class="mopen">(</span><span class="mord mathnormal">x</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord mathnormal">h</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord mathnormal" style="margin-right:0.10764em;">f</span><span class="mopen">(</span><span class="mord mathnormal">x</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord mathnormal">h</span><span class="mclose">)</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.686em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span></span></span></div></figure><p id="12a17eee-0cbb-8086-8e60-fb857e661dde" class="">
+</p><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="12a17eee-0cbb-80e6-9abf-fb1c07af1257" class="code"><code class="language-Python" style="white-space:pre-wrap;word-break:break-all">def central_difference(x, h):
+    return (f(x + h) - f(x - h)) / (2 * h)
+
+
+def richardsons_extrapolation(x, h):
+    return (4 * central_difference(x, h / 2) - central_difference(x, h)) / 3</code></pre></li></ul></div></div><h2 id="12917eee-0cbb-80c2-b697-f8d792742a7c" class="">Visualization of Errors</h2><p id="198ad109-4469-44b7-9b97-22186ba7c589" class="">To better understand the errors associated with finite difference methods and floating point arithmetic, it&#x27;s crucial to visualize these errors graphically. Visual representations can provide intuitive insights into the magnitude and behavior of errors across different scenarios. Let&#x27;s examine how these errors manifest in both polynomial and trigonometric functions, starting with polynomial functions.</p><h2 id="12917eee-0cbb-80fc-b8d5-de01887d8b07" class=""><strong>Polynomial Function</strong></h2><div id="12a17eee-0cbb-80cd-a45e-e1eb1905966d" class="column-list"><div id="12a17eee-0cbb-80b6-8f5e-d1fd2dbfbe40" style="width:50%" class="column"><figure id="12a17eee-0cbb-8055-930b-e5c58934b1e3" class="equation"><style>@import url('https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css')</style><div class="equation-container"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>f</mi><mo stretchy="false">(</mo><mi>x</mi><mo stretchy="false">)</mo><mo>=</mo><msup><mi>x</mi><mn>5</mn></msup><mo>+</mo><mn>3.5</mn><msup><mi>x</mi><mn>4</mn></msup><mo>−</mo><mn>2.5</mn><msup><mi>x</mi><mn>3</mn></msup><mo>−</mo><mn>12.5</mn><msup><mi>x</mi><mn>2</mn></msup><mo>+</mo><mn>1.5</mn><mi>x</mi><mo>+</mo><mn>9</mn></mrow><annotation encoding="application/x-tex">f(x) = x^{5} + 3.5x^{4} - 2.5x^{3} - 12.5x^{2} + 1.5x + 9</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.10764em;">f</span><span class="mopen">(</span><span class="mord mathnormal">x</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.9474em;vertical-align:-0.0833em;"></span><span class="mord"><span class="mord mathnormal">x</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8641em;"><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">5</span></span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.9474em;vertical-align:-0.0833em;"></span><span class="mord">3.5</span><span class="mord"><span class="mord mathnormal">x</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8641em;"><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">4</span></span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.9474em;vertical-align:-0.0833em;"></span><span class="mord">2.5</span><span class="mord"><span class="mord mathnormal">x</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8641em;"><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">3</span></span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.9474em;vertical-align:-0.0833em;"></span><span class="mord">12.5</span><span class="mord"><span class="mord mathnormal">x</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8641em;"><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">1.5</span><span class="mord mathnormal">x</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">9</span></span></span></span></span></div></figure><figure id="12a17eee-0cbb-8054-b4fd-d6ea91d91985" class="equation"><style>@import url('https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css')</style><div class="equation-container"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msup><mi>f</mi><mo mathvariant="normal" lspace="0em" rspace="0em">′</mo></msup><mo stretchy="false">(</mo><mi>x</mi><mo stretchy="false">)</mo><mo>=</mo><mn>5</mn><msup><mi>x</mi><mn>4</mn></msup><mo>+</mo><mn>14</mn><msup><mi>x</mi><mn>3</mn></msup><mo>−</mo><mn>7.5</mn><msup><mi>x</mi><mn>2</mn></msup><mo>−</mo><mn>25</mn><mi>x</mi><mo>+</mo><mn>1.5</mn></mrow><annotation encoding="application/x-tex">f&#x27;(x) = 5x^4 + 14x^3 - 7.5x^2 - 25x + 1.5</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.0519em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.10764em;">f</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8019em;"><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">′</span></span></span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathnormal">x</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.9474em;vertical-align:-0.0833em;"></span><span class="mord">5</span><span class="mord"><span class="mord mathnormal">x</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8641em;"><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">4</span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.9474em;vertical-align:-0.0833em;"></span><span class="mord">14</span><span class="mord"><span class="mord mathnormal">x</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8641em;"><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">3</span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.9474em;vertical-align:-0.0833em;"></span><span class="mord">7.5</span><span class="mord"><span class="mord mathnormal">x</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8641em;"><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">25</span><span class="mord mathnormal">x</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">1.5</span></span></span></span></span></div></figure></div><div id="12a17eee-0cbb-800d-b3d7-c80b5faed5bc" style="width:50%" class="column"><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="12a17eee-0cbb-8037-9d4a-f1603b5dcd40" class="code"><code class="language-Python" style="white-space:pre-wrap;word-break:break-all">def f(x):
+    return x**5 + 3.5 * x**4 - 2.5 * x**3 - 12.5 * x**2 + 1.5 * x + 9
+
+def df(x):
+    return 5 * x**4 + 14 * x**3 - 7.5 * x**2 - 25 * x + 1.5</code></pre></div></div><h3 id="12917eee-0cbb-80b9-9fc4-c620352d9c0a" class="">Tangent Line</h3><div id="12a17eee-0cbb-8077-9130-f056e09a6776" class="column-list"><div id="12a17eee-0cbb-804d-afc1-e29c7ed8ef67" style="width:50%" class="column"><p id="12a17eee-0cbb-80d6-bcb8-fc0aacf67abc" class="">Graph of tangent line at <mark class="highlight-gray_background"> x = 0 </mark></p><figure id="12a17eee-0cbb-80da-a77c-f6d84c8f02a2" class="image"><a href="Figure_1.png"><img style="width:1415.984375px" src="Figure_1.png"/></a></figure></div><div id="12a17eee-0cbb-80aa-a929-d1a124464367" style="width:50%" class="column"><p id="12a17eee-0cbb-80c2-9a26-e66c9269baf0" class="">Some of lines may not be well visible and here is zoomed version.</p><figure id="12a17eee-0cbb-802b-9cf9-fa08321fee05" class="image"><a href="Figure_1%201.png"><img style="width:1415.984375px" src="Figure_1%201.png"/></a></figure></div></div><p id="12a17eee-0cbb-8052-9588-d7599884c918" class="">As expected first degree differences estimated worse than higher degree ones. Richardson’s method came closest which sits almost on the actual derivative while central difference is little bit off.</p><h3 id="12917eee-0cbb-8060-9a5d-c4afcef63848" class="">Derivative Graph</h3><p id="12a17eee-0cbb-809a-8ecd-e3942dfc8999" class="">Following is a graph of 5 derivatives: actual derivative and then differences.</p><figure id="12a17eee-0cbb-801f-bf24-d2eb4068fcb3" class="image"><a href="Figure_1%202.png"><img style="width:1415.984375px" src="Figure_1%202.png"/></a></figure><div id="12a17eee-0cbb-8018-a3b8-e78235dc0a1c" class="column-list"><div id="12a17eee-0cbb-8096-a01a-d3e4f73b40d7" style="width:50%" class="column"><p id="12a17eee-0cbb-8073-a5ad-fd8b3f44c5b5" class="">Zoomed in. Forward and central difference are way off than others, then comes central one and Richardson&#x27;s </p><figure id="12a17eee-0cbb-80dc-8e7e-c62fe2760afe" class="image"><a href="Figure_1%203.png"><img style="width:1415.984375px" src="Figure_1%203.png"/></a></figure></div><div id="12a17eee-0cbb-80c2-be94-ec20f58bb33d" style="width:50%" class="column"><p id="12a17eee-0cbb-80fb-9dac-fcc57ec66c7d" class="">Forward and central difference are way off than others, then comes central one and Richardson&#x27;s extrapolation almost is same line as actual derivative. Difference is in degree of 10 to -5 power.</p><figure id="12a17eee-0cbb-80ce-bb3e-e710d0d5cb2c" class="image"><a href="Figure_1%204.png"><img style="width:1415.984375px" src="Figure_1%204.png"/></a></figure></div></div><h3 id="12917eee-0cbb-806f-a10d-f00292a3fe37" class="">Error Graph</h3><p id="12a17eee-0cbb-80d7-98cd-dbff16101628" class="">Here is a logarithmic graph of errors when discretization term goes to 0 i.e. <mark class="highlight-gray_background"> h → 0 </mark></p><figure id="12a17eee-0cbb-8081-9390-ff0d0ac027e3" class="image"><a href="Figure_1%205.png"><img style="width:1415.984375px" src="Figure_1%205.png"/></a></figure><p id="12a17eee-0cbb-80b4-9404-fce703868cfe" class="">As <mark class="highlight-gray_background"> h → 0 </mark>, error behavior shows following:</p><ul id="12a17eee-0cbb-801e-b39b-f5977a95ac50" class="bulleted-list"><li style="list-style-type:disc"><mark class="highlight-orange_background"> Forward </mark> and <mark class="highlight-yellow_background"> Backward </mark> Differences: Both have increased errors, performing poorly as they are only first-order accurate.</li></ul><ul id="12a17eee-0cbb-80eb-9f83-e04260bf1306" class="bulleted-list"><li style="list-style-type:disc"><mark class="highlight-teal_background"> Central </mark> Difference: Performs better with smaller error due to its second-order accuracy, but still grows as <em><strong>h</strong></em> decreases.</li></ul><ul id="12a17eee-0cbb-80cb-8d84-c085c40aa84a" class="bulleted-list"><li style="list-style-type:disc"><mark class="highlight-blue_background"> Richardson’s </mark> Extrapolation: Has smallest error and best performance due to higher-order accuracy, but shows instability at very small <em><strong>h</strong></em> due to numerical precision limits.</li></ul><p id="12a17eee-0cbb-806f-bc78-f7de0e5be8a7" class="">Note that smallest <em><strong>h </strong></em>does not guarantee the best result due to <strong>round-off errors</strong>. As <em><strong>h</strong></em> becomes extremely small, subtractive cancellation occurs, increasing numerical errors.</p><h2 id="12917eee-0cbb-803c-bcdb-db5778cf8b6d" class="">Trigonometric Function</h2><div id="12a17eee-0cbb-80e6-8aef-f72405253747" class="column-list"><div id="12a17eee-0cbb-8012-a05d-fe4df5782a53" style="width:50%" class="column"><p id="12a17eee-0cbb-802a-a0c7-dd80dce8722a" class="">
+</p><figure id="12a17eee-0cbb-8023-8a53-e86048560467" class="equation"><style>@import url('https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css')</style><div class="equation-container"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>f</mi><mo stretchy="false">(</mo><mi>x</mi><mo stretchy="false">)</mo><mo>=</mo><mi>s</mi><mi>i</mi><mi>n</mi><mo stretchy="false">(</mo><mi>x</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">f(x) = sin(x)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.10764em;">f</span><span class="mopen">(</span><span class="mord mathnormal">x</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal">s</span><span class="mord mathnormal">in</span><span class="mopen">(</span><span class="mord mathnormal">x</span><span class="mclose">)</span></span></span></span></span></div></figure><figure id="12a17eee-0cbb-8098-bc10-c045b679b0d0" class="equation"><style>@import url('https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css')</style><div class="equation-container"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msup><mi>f</mi><mo mathvariant="normal" lspace="0em" rspace="0em">′</mo></msup><mo stretchy="false">(</mo><mi>x</mi><mo stretchy="false">)</mo><mo>=</mo><mi>cos</mi><mo>⁡</mo><mo stretchy="false">(</mo><mi>x</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">f&#x27;(x) = \cos(x)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.0519em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.10764em;">f</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8019em;"><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">′</span></span></span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathnormal">x</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mop">cos</span><span class="mopen">(</span><span class="mord mathnormal">x</span><span class="mclose">)</span></span></span></span></span></div></figure></div><div id="12a17eee-0cbb-8069-a50f-c587e1559aff" style="width:50%" class="column"><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="12a17eee-0cbb-8053-be72-f0626ebbd4ca" class="code"><code class="language-Python" style="white-space:pre-wrap;word-break:break-all">import math
+
+def f(x):
+    return math.sin(x)
+
+def df(x):
+    return math.cos(x)</code></pre></div></div><h3 id="12917eee-0cbb-80c4-be40-dc7b7b0558a1" class="">Tangent Line</h3><div id="12a17eee-0cbb-8058-9ad2-d12ee03b1d47" class="column-list"><div id="12a17eee-0cbb-80bf-908c-f3f6c4c82de0" style="width:50%" class="column"><p id="12a17eee-0cbb-805e-a978-ed3ba1e48262" class="">Graph of tangent line at <mark class="highlight-gray_background"> x = </mark><mark class="highlight-gray_background"><strong>π / 4</strong></mark><mark class="highlight-gray_background"> </mark><mark class="highlight-default_background">.</mark></p><figure id="12a17eee-0cbb-8070-8cd2-f4d7be24d6d6" class="image"><a href="Figure_1%206.png"><img style="width:1415.984375px" src="Figure_1%206.png"/></a></figure></div><div id="12a17eee-0cbb-80c8-9d02-d318212b4ab9" style="width:50%" class="column"><p id="12a17eee-0cbb-8015-9778-d5440b3bdf40" class="">Zoomed in version.</p><figure id="12a17eee-0cbb-8011-a265-d060b436fee1" class="image"><a href="Figure_1%207.png"><img style="width:684.96875px" src="Figure_1%207.png"/></a></figure></div></div><h3 id="12917eee-0cbb-80a5-82d5-ec2a9b6bba92" class="">Derivative Graph</h3><p id="12a17eee-0cbb-80f7-82a3-df26e13a74e9" class="">Here is a graph of differences as well as graph of actual derivative.</p><figure id="12a17eee-0cbb-808e-b3e5-c27f378385bf" class="image"><a href="Figure_1%208.png"><img style="width:1416px" src="Figure_1%208.png"/></a></figure><div id="12a17eee-0cbb-808a-96b6-ef9e2bdf7d74" class="column-list"><div id="12a17eee-0cbb-8085-9fe7-c190a3c58abe" style="width:50%" class="column"><p id="12a17eee-0cbb-80ec-85b5-eaf0d6775b4d" class="">Zoomed in version.</p><figure id="12a17eee-0cbb-80e3-b375-e64361eb4687" class="image"><a href="Figure_1%209.png"><img style="width:1415.984375px" src="Figure_1%209.png"/></a></figure></div><div id="12a17eee-0cbb-807a-8dcd-ea80f93f5d1d" style="width:50%" class="column"><p id="12a17eee-0cbb-804f-bed4-fa4ffa3beb10" class="">Difference between Richardson’s Extrapolation and actual derivative. </p><figure id="12a17eee-0cbb-8060-9d8a-f8f3b2b37ce4" class="image"><a href="Figure_1%2010.png"><img style="width:684.96875px" src="Figure_1%2010.png"/></a></figure></div></div><h3 id="12917eee-0cbb-8064-839f-ee3fcff2788a" class="">Error Graph</h3><p id="12a17eee-0cbb-80fc-b440-de115f4a7aa8" class="">Here is a logarithmic graph of errors when discretization term goes to 0 i.e. <mark class="highlight-gray_background"> h → 0 </mark></p><figure id="12a17eee-0cbb-8016-a996-f8b12d784648" class="image"><a href="Figure_1%2011.png"><img style="width:1415.984375px" src="Figure_1%2011.png"/></a></figure><p id="12a17eee-0cbb-8083-855c-d708231dc445" class="">As <mark class="highlight-gray_background"> h → 0 </mark>, error behavior shows following:</p><ul id="12a17eee-0cbb-8025-92ad-da6fc48050e9" class="bulleted-list"><li style="list-style-type:disc"><mark class="highlight-orange_background"> Forward </mark> and <mark class="highlight-yellow_background"> Backward </mark> Differences: Both show increasing errors and perform poorly since they are only first-order accurate.</li></ul><ul id="12a17eee-0cbb-80d3-a37e-cd37112f01bc" class="bulleted-list"><li style="list-style-type:disc"><mark class="highlight-teal_background"> Central </mark> Difference: Performs better with smaller errors due to its second-order accuracy but still experiences increasing error as <em><strong>h</strong></em> decreases.</li></ul><ul id="12a17eee-0cbb-8007-8916-f10c2f3d8a17" class="bulleted-list"><li style="list-style-type:disc"><mark class="highlight-blue_background"> Richardson’s </mark> Extrapolation: Achieves the smallest error and performs best due to its higher-order accuracy, but exhibits instability at very small <em><strong>h</strong></em> values due to numerical precision limits.</li></ul><p id="12a17eee-0cbb-80a4-9d11-c87056619a28" class="">It&#x27;s important to note that a smaller <em><strong>h </strong></em>does not always yield better results because of <strong>round-off errors</strong>. As <em><strong>h</strong></em> becomes extremely small, subtractive cancellation occurs, which leads to increasing numerical errors.</p><hr id="12917eee-0cbb-804b-aa93-f9105a3cb9a1"/><h2 id="12917eee-0cbb-8074-b3fc-e808a28ec334" class="">Conclusion</h2><p id="e6430443-fc5b-4db2-812d-1b9ee725f058" class="">This analysis of floating point errors and finite difference methods highlights several key points:</p><ul id="ece77090-c3c9-41e9-a5d7-66514b22e2ad" class="bulleted-list"><li style="list-style-type:disc">Floating point arithmetic can lead to inaccuracies due to finite precision in computer representations.</li></ul><ul id="94ea3d53-de52-4cf1-a5be-c700874c6d94" class="bulleted-list"><li style="list-style-type:disc">Finite difference methods are crucial numerical techniques for approximating derivatives, with varying levels of precision and computational complexity.</li></ul><ul id="3e575e01-6c6e-4332-959f-9a8dfce0c240" class="bulleted-list"><li style="list-style-type:disc">Low-order methods (forward and backward differences) are simpler but less accurate, while high-order methods (central difference and Richardson&#x27;s extrapolation) offer improved accuracy at higher computational cost.</li></ul><ul id="96350549-06ce-418c-8941-d9824e88dbb7" class="bulleted-list"><li style="list-style-type:disc">Visualization of errors reveals that Richardson&#x27;s extrapolation generally performs best, followed by central difference, with forward and backward differences showing larger errors.</li></ul><ul id="1286099d-5618-483a-87ce-ee876449c999" class="bulleted-list"><li style="list-style-type:disc">As the step size <em><strong>h</strong></em> approaches zero, numerical errors can increase due to round-off effects, demonstrating that smaller step sizes don&#x27;t always yield better results.</li></ul><ul id="14b47859-2585-483a-8ec9-af0ff3a3717d" class="bulleted-list"><li style="list-style-type:disc">The choice of finite difference method depends on the specific problem, required accuracy, and available computational resources.</li></ul><p id="f99a203b-b969-45df-a96f-8e0b1a511eff" class="">Understanding these concepts is crucial for effectively implementing numerical methods in scientific computing and engineering applications.</p></div></article><span class="sans" style="font-size:14px;padding-top:2em"></span></body></html>

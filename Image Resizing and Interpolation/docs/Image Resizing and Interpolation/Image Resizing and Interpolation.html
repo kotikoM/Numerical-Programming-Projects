@@ -1,0 +1,852 @@
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"/><title>Image Resizing and Interpolation</title><style>
+/* cspell:disable-file */
+/* webkit printing magic: print all background colors */
+html {
+	-webkit-print-color-adjust: exact;
+}
+* {
+	box-sizing: border-box;
+	-webkit-print-color-adjust: exact;
+}
+
+html,
+body {
+	margin: 0;
+	padding: 0;
+}
+@media only screen {
+	body {
+		margin: 2em auto;
+		max-width: 900px;
+		color: rgb(55, 53, 47);
+	}
+}
+
+body {
+	line-height: 1.5;
+	white-space: pre-wrap;
+}
+
+a,
+a.visited {
+	color: inherit;
+	text-decoration: underline;
+}
+
+.pdf-relative-link-path {
+	font-size: 80%;
+	color: #444;
+}
+
+h1,
+h2,
+h3 {
+	letter-spacing: -0.01em;
+	line-height: 1.2;
+	font-weight: 600;
+	margin-bottom: 0;
+}
+
+.page-title {
+	font-size: 2.5rem;
+	font-weight: 700;
+	margin-top: 0;
+	margin-bottom: 0.75em;
+}
+
+h1 {
+	font-size: 1.875rem;
+	margin-top: 1.875rem;
+}
+
+h2 {
+	font-size: 1.5rem;
+	margin-top: 1.5rem;
+}
+
+h3 {
+	font-size: 1.25rem;
+	margin-top: 1.25rem;
+}
+
+.source {
+	border: 1px solid #ddd;
+	border-radius: 3px;
+	padding: 1.5em;
+	word-break: break-all;
+}
+
+.callout {
+	border-radius: 3px;
+	padding: 1rem;
+}
+
+figure {
+	margin: 1.25em 0;
+	page-break-inside: avoid;
+}
+
+figcaption {
+	opacity: 0.5;
+	font-size: 85%;
+	margin-top: 0.5em;
+}
+
+mark {
+	background-color: transparent;
+}
+
+.indented {
+	padding-left: 1.5em;
+}
+
+hr {
+	background: transparent;
+	display: block;
+	width: 100%;
+	height: 1px;
+	visibility: visible;
+	border: none;
+	border-bottom: 1px solid rgba(55, 53, 47, 0.09);
+}
+
+img {
+	max-width: 100%;
+}
+
+@media only print {
+	img {
+		max-height: 100vh;
+		object-fit: contain;
+	}
+}
+
+@page {
+	margin: 1in;
+}
+
+.collection-content {
+	font-size: 0.875rem;
+}
+
+.column-list {
+	display: flex;
+	justify-content: space-between;
+}
+
+.column {
+	padding: 0 1em;
+}
+
+.column:first-child {
+	padding-left: 0;
+}
+
+.column:last-child {
+	padding-right: 0;
+}
+
+.table_of_contents-item {
+	display: block;
+	font-size: 0.875rem;
+	line-height: 1.3;
+	padding: 0.125rem;
+}
+
+.table_of_contents-indent-1 {
+	margin-left: 1.5rem;
+}
+
+.table_of_contents-indent-2 {
+	margin-left: 3rem;
+}
+
+.table_of_contents-indent-3 {
+	margin-left: 4.5rem;
+}
+
+.table_of_contents-link {
+	text-decoration: none;
+	opacity: 0.7;
+	border-bottom: 1px solid rgba(55, 53, 47, 0.18);
+}
+
+table,
+th,
+td {
+	border: 1px solid rgba(55, 53, 47, 0.09);
+	border-collapse: collapse;
+}
+
+table {
+	border-left: none;
+	border-right: none;
+}
+
+th,
+td {
+	font-weight: normal;
+	padding: 0.25em 0.5em;
+	line-height: 1.5;
+	min-height: 1.5em;
+	text-align: left;
+}
+
+th {
+	color: rgba(55, 53, 47, 0.6);
+}
+
+ol,
+ul {
+	margin: 0;
+	margin-block-start: 0.6em;
+	margin-block-end: 0.6em;
+}
+
+li > ol:first-child,
+li > ul:first-child {
+	margin-block-start: 0.6em;
+}
+
+ul > li {
+	list-style: disc;
+}
+
+ul.to-do-list {
+	padding-inline-start: 0;
+}
+
+ul.to-do-list > li {
+	list-style: none;
+}
+
+.to-do-children-checked {
+	text-decoration: line-through;
+	opacity: 0.375;
+}
+
+ul.toggle > li {
+	list-style: none;
+}
+
+ul {
+	padding-inline-start: 1.7em;
+}
+
+ul > li {
+	padding-left: 0.1em;
+}
+
+ol {
+	padding-inline-start: 1.6em;
+}
+
+ol > li {
+	padding-left: 0.2em;
+}
+
+.mono ol {
+	padding-inline-start: 2em;
+}
+
+.mono ol > li {
+	text-indent: -0.4em;
+}
+
+.toggle {
+	padding-inline-start: 0em;
+	list-style-type: none;
+}
+
+/* Indent toggle children */
+.toggle > li > details {
+	padding-left: 1.7em;
+}
+
+.toggle > li > details > summary {
+	margin-left: -1.1em;
+}
+
+.selected-value {
+	display: inline-block;
+	padding: 0 0.5em;
+	background: rgba(206, 205, 202, 0.5);
+	border-radius: 3px;
+	margin-right: 0.5em;
+	margin-top: 0.3em;
+	margin-bottom: 0.3em;
+	white-space: nowrap;
+}
+
+.collection-title {
+	display: inline-block;
+	margin-right: 1em;
+}
+
+.page-description {
+	margin-bottom: 2em;
+}
+
+.simple-table {
+	margin-top: 1em;
+	font-size: 0.875rem;
+	empty-cells: show;
+}
+.simple-table td {
+	height: 29px;
+	min-width: 120px;
+}
+
+.simple-table th {
+	height: 29px;
+	min-width: 120px;
+}
+
+.simple-table-header-color {
+	background: rgb(247, 246, 243);
+	color: black;
+}
+.simple-table-header {
+	font-weight: 500;
+}
+
+time {
+	opacity: 0.5;
+}
+
+.icon {
+	display: inline-block;
+	max-width: 1.2em;
+	max-height: 1.2em;
+	text-decoration: none;
+	vertical-align: text-bottom;
+	margin-right: 0.5em;
+}
+
+img.icon {
+	border-radius: 3px;
+}
+
+.user-icon {
+	width: 1.5em;
+	height: 1.5em;
+	border-radius: 100%;
+	margin-right: 0.5rem;
+}
+
+.user-icon-inner {
+	font-size: 0.8em;
+}
+
+.text-icon {
+	border: 1px solid #000;
+	text-align: center;
+}
+
+.page-cover-image {
+	display: block;
+	object-fit: cover;
+	width: 100%;
+	max-height: 30vh;
+}
+
+.page-header-icon {
+	font-size: 3rem;
+	margin-bottom: 1rem;
+}
+
+.page-header-icon-with-cover {
+	margin-top: -0.72em;
+	margin-left: 0.07em;
+}
+
+.page-header-icon img {
+	border-radius: 3px;
+}
+
+.link-to-page {
+	margin: 1em 0;
+	padding: 0;
+	border: none;
+	font-weight: 500;
+}
+
+p > .user {
+	opacity: 0.5;
+}
+
+td > .user,
+td > time {
+	white-space: nowrap;
+}
+
+input[type="checkbox"] {
+	transform: scale(1.5);
+	margin-right: 0.6em;
+	vertical-align: middle;
+}
+
+p {
+	margin-top: 0.5em;
+	margin-bottom: 0.5em;
+}
+
+.image {
+	border: none;
+	margin: 1.5em 0;
+	padding: 0;
+	border-radius: 0;
+	text-align: center;
+}
+
+.code,
+code {
+	background: rgba(135, 131, 120, 0.15);
+	border-radius: 3px;
+	padding: 0.2em 0.4em;
+	border-radius: 3px;
+	font-size: 85%;
+	tab-size: 2;
+}
+
+code {
+	color: #eb5757;
+}
+
+.code {
+	padding: 1.5em 1em;
+}
+
+.code-wrap {
+	white-space: pre-wrap;
+	word-break: break-all;
+}
+
+.code > code {
+	background: none;
+	padding: 0;
+	font-size: 100%;
+	color: inherit;
+}
+
+blockquote {
+	font-size: 1.25em;
+	margin: 1em 0;
+	padding-left: 1em;
+	border-left: 3px solid rgb(55, 53, 47);
+}
+
+.bookmark {
+	text-decoration: none;
+	max-height: 8em;
+	padding: 0;
+	display: flex;
+	width: 100%;
+	align-items: stretch;
+}
+
+.bookmark-title {
+	font-size: 0.85em;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	height: 1.75em;
+	white-space: nowrap;
+}
+
+.bookmark-text {
+	display: flex;
+	flex-direction: column;
+}
+
+.bookmark-info {
+	flex: 4 1 180px;
+	padding: 12px 14px 14px;
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+}
+
+.bookmark-image {
+	width: 33%;
+	flex: 1 1 180px;
+	display: block;
+	position: relative;
+	object-fit: cover;
+	border-radius: 1px;
+}
+
+.bookmark-description {
+	color: rgba(55, 53, 47, 0.6);
+	font-size: 0.75em;
+	overflow: hidden;
+	max-height: 4.5em;
+	word-break: break-word;
+}
+
+.bookmark-href {
+	font-size: 0.75em;
+	margin-top: 0.25em;
+}
+
+.sans { font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol"; }
+.code { font-family: "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace; }
+.serif { font-family: Lyon-Text, Georgia, ui-serif, serif; }
+.mono { font-family: iawriter-mono, Nitti, Menlo, Courier, monospace; }
+.pdf .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK JP'; }
+.pdf:lang(zh-CN) .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK SC'; }
+.pdf:lang(zh-TW) .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK TC'; }
+.pdf:lang(ko-KR) .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK KR'; }
+.pdf .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK JP'; }
+.pdf:lang(zh-CN) .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK SC'; }
+.pdf:lang(zh-TW) .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK TC'; }
+.pdf:lang(ko-KR) .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK KR'; }
+.pdf .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK JP'; }
+.pdf:lang(zh-CN) .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK SC'; }
+.pdf:lang(zh-TW) .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK TC'; }
+.pdf:lang(ko-KR) .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK KR'; }
+.pdf .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK JP'; }
+.pdf:lang(zh-CN) .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK SC'; }
+.pdf:lang(zh-TW) .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK TC'; }
+.pdf:lang(ko-KR) .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK KR'; }
+.highlight-default {
+	color: rgba(55, 53, 47, 1);
+}
+.highlight-gray {
+	color: rgba(120, 119, 116, 1);
+	fill: rgba(120, 119, 116, 1);
+}
+.highlight-brown {
+	color: rgba(159, 107, 83, 1);
+	fill: rgba(159, 107, 83, 1);
+}
+.highlight-orange {
+	color: rgba(217, 115, 13, 1);
+	fill: rgba(217, 115, 13, 1);
+}
+.highlight-yellow {
+	color: rgba(203, 145, 47, 1);
+	fill: rgba(203, 145, 47, 1);
+}
+.highlight-teal {
+	color: rgba(68, 131, 97, 1);
+	fill: rgba(68, 131, 97, 1);
+}
+.highlight-blue {
+	color: rgba(51, 126, 169, 1);
+	fill: rgba(51, 126, 169, 1);
+}
+.highlight-purple {
+	color: rgba(144, 101, 176, 1);
+	fill: rgba(144, 101, 176, 1);
+}
+.highlight-pink {
+	color: rgba(193, 76, 138, 1);
+	fill: rgba(193, 76, 138, 1);
+}
+.highlight-red {
+	color: rgba(212, 76, 71, 1);
+	fill: rgba(212, 76, 71, 1);
+}
+.highlight-default_background {
+	color: rgba(55, 53, 47, 1);
+}
+.highlight-gray_background {
+	background: rgba(241, 241, 239, 1);
+}
+.highlight-brown_background {
+	background: rgba(244, 238, 238, 1);
+}
+.highlight-orange_background {
+	background: rgba(251, 236, 221, 1);
+}
+.highlight-yellow_background {
+	background: rgba(251, 243, 219, 1);
+}
+.highlight-teal_background {
+	background: rgba(237, 243, 236, 1);
+}
+.highlight-blue_background {
+	background: rgba(231, 243, 248, 1);
+}
+.highlight-purple_background {
+	background: rgba(244, 240, 247, 0.8);
+}
+.highlight-pink_background {
+	background: rgba(249, 238, 243, 0.8);
+}
+.highlight-red_background {
+	background: rgba(253, 235, 236, 1);
+}
+.block-color-default {
+	color: inherit;
+	fill: inherit;
+}
+.block-color-gray {
+	color: rgba(120, 119, 116, 1);
+	fill: rgba(120, 119, 116, 1);
+}
+.block-color-brown {
+	color: rgba(159, 107, 83, 1);
+	fill: rgba(159, 107, 83, 1);
+}
+.block-color-orange {
+	color: rgba(217, 115, 13, 1);
+	fill: rgba(217, 115, 13, 1);
+}
+.block-color-yellow {
+	color: rgba(203, 145, 47, 1);
+	fill: rgba(203, 145, 47, 1);
+}
+.block-color-teal {
+	color: rgba(68, 131, 97, 1);
+	fill: rgba(68, 131, 97, 1);
+}
+.block-color-blue {
+	color: rgba(51, 126, 169, 1);
+	fill: rgba(51, 126, 169, 1);
+}
+.block-color-purple {
+	color: rgba(144, 101, 176, 1);
+	fill: rgba(144, 101, 176, 1);
+}
+.block-color-pink {
+	color: rgba(193, 76, 138, 1);
+	fill: rgba(193, 76, 138, 1);
+}
+.block-color-red {
+	color: rgba(212, 76, 71, 1);
+	fill: rgba(212, 76, 71, 1);
+}
+.block-color-default_background {
+	color: inherit;
+	fill: inherit;
+}
+.block-color-gray_background {
+	background: rgba(241, 241, 239, 1);
+}
+.block-color-brown_background {
+	background: rgba(244, 238, 238, 1);
+}
+.block-color-orange_background {
+	background: rgba(251, 236, 221, 1);
+}
+.block-color-yellow_background {
+	background: rgba(251, 243, 219, 1);
+}
+.block-color-teal_background {
+	background: rgba(237, 243, 236, 1);
+}
+.block-color-blue_background {
+	background: rgba(231, 243, 248, 1);
+}
+.block-color-purple_background {
+	background: rgba(244, 240, 247, 0.8);
+}
+.block-color-pink_background {
+	background: rgba(249, 238, 243, 0.8);
+}
+.block-color-red_background {
+	background: rgba(253, 235, 236, 1);
+}
+.select-value-color-uiBlue { background-color: rgba(35, 131, 226, .07); }
+.select-value-color-pink { background-color: rgba(245, 224, 233, 1); }
+.select-value-color-purple { background-color: rgba(232, 222, 238, 1); }
+.select-value-color-green { background-color: rgba(219, 237, 219, 1); }
+.select-value-color-gray { background-color: rgba(227, 226, 224, 1); }
+.select-value-color-transparentGray { background-color: rgba(227, 226, 224, 0); }
+.select-value-color-translucentGray { background-color: rgba(0, 0, 0, 0.06); }
+.select-value-color-orange { background-color: rgba(250, 222, 201, 1); }
+.select-value-color-brown { background-color: rgba(238, 224, 218, 1); }
+.select-value-color-red { background-color: rgba(255, 226, 221, 1); }
+.select-value-color-yellow { background-color: rgba(253, 236, 200, 1); }
+.select-value-color-blue { background-color: rgba(211, 229, 239, 1); }
+.select-value-color-pageGlass { background-color: undefined; }
+.select-value-color-washGlass { background-color: undefined; }
+
+.checkbox {
+	display: inline-flex;
+	vertical-align: text-bottom;
+	width: 16;
+	height: 16;
+	background-size: 16px;
+	margin-left: 2px;
+	margin-right: 5px;
+}
+
+.checkbox-on {
+	background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%0A%3Crect%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22%2358A9D7%22%2F%3E%0A%3Cpath%20d%3D%22M6.71429%2012.2852L14%204.9995L12.7143%203.71436L6.71429%209.71378L3.28571%206.2831L2%207.57092L6.71429%2012.2852Z%22%20fill%3D%22white%22%2F%3E%0A%3C%2Fsvg%3E");
+}
+
+.checkbox-off {
+	background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%0A%3Crect%20x%3D%220.75%22%20y%3D%220.75%22%20width%3D%2214.5%22%20height%3D%2214.5%22%20fill%3D%22white%22%20stroke%3D%22%2336352F%22%20stroke-width%3D%221.5%22%2F%3E%0A%3C%2Fsvg%3E");
+}
+	
+</style></head><body><article id="13317eee-0cbb-80ca-9080-ee075fc53403" class="page sans"><header><img class="page-cover-image" src="https://www.notion.so/images/page-cover/woodcuts_1.jpg" style="object-position:center 61.63000000000001%"/><div class="page-header-icon page-header-icon-with-cover"><img class="icon" src="https://www.notion.so/icons/photo-landscape_blue.svg"/></div><h1 class="page-title">Image Resizing and Interpolation</h1><p class="page-description"></p></header><div class="page-body"><div id="13317eee-0cbb-8078-b715-fd26ede5bc9d" class="column-list"><div id="13317eee-0cbb-809e-98cd-eb1361860218" style="width:50%" class="column"><nav id="13317eee-0cbb-8098-9a20-d2a31df2f25e" class="block-color-gray table_of_contents"><div class="table_of_contents-item table_of_contents-indent-0"><a class="table_of_contents-link" href="#13317eee-0cbb-8095-a7d3-d5ec18cbdcb8">Introduction</a></div><div class="table_of_contents-item table_of_contents-indent-1"><a class="table_of_contents-link" href="#13317eee-0cbb-804e-b3f7-d944b5a6c9d8">Problem Statement</a></div><div class="table_of_contents-item table_of_contents-indent-0"><a class="table_of_contents-link" href="#13317eee-0cbb-8075-8590-d6321eacd4ff">Interpolation Methods</a></div><div class="table_of_contents-item table_of_contents-indent-1"><a class="table_of_contents-link" href="#13317eee-0cbb-80b8-8445-ea9ea9de3d42"><strong>Nearest Neighbor</strong></a></div><div class="table_of_contents-item table_of_contents-indent-2"><a class="table_of_contents-link" href="#13317eee-0cbb-8048-aa5f-d1109235f51f">Example</a></div><div class="table_of_contents-item table_of_contents-indent-2"><a class="table_of_contents-link" href="#13417eee-0cbb-80cf-bc9c-ddb4ecc3b8ba">Code</a></div><div class="table_of_contents-item table_of_contents-indent-1"><a class="table_of_contents-link" href="#13317eee-0cbb-80bf-a484-f9a3dc50c5a1"><strong>Bicubic Interpolation</strong></a></div><div class="table_of_contents-item table_of_contents-indent-2"><a class="table_of_contents-link" href="#13417eee-0cbb-8033-bba5-ddb68415920f">Code</a></div><div class="table_of_contents-item table_of_contents-indent-1"><a class="table_of_contents-link" href="#13c17eee-0cbb-8038-a43e-c6a178ad90ef">Visualization Code</a></div><div class="table_of_contents-item table_of_contents-indent-0"><a class="table_of_contents-link" href="#13317eee-0cbb-80a6-b43f-c8bfc0761175">Experimental Setup</a></div><div class="table_of_contents-item table_of_contents-indent-1"><a class="table_of_contents-link" href="#13317eee-0cbb-80c3-a4d8-d4b6b9d15bcf">Image Selection</a></div><div class="table_of_contents-item table_of_contents-indent-1"><a class="table_of_contents-link" href="#13317eee-0cbb-80b5-bca5-d4a046185ab5">Testing</a></div><div class="table_of_contents-item table_of_contents-indent-2"><a class="table_of_contents-link" href="#13417eee-0cbb-8039-aa8d-f949759aaef4">Bicubic Interpolation Works Better</a></div><div class="table_of_contents-item table_of_contents-indent-2"><a class="table_of_contents-link" href="#13417eee-0cbb-80f9-8428-c54a08838fd5">Both Methods Struggle</a></div><div class="table_of_contents-item table_of_contents-indent-0"><a class="table_of_contents-link" href="#13417eee-0cbb-801d-9aaf-e1b09c4c3cb7">Error Estimation</a></div><div class="table_of_contents-item table_of_contents-indent-0"><a class="table_of_contents-link" href="#13317eee-0cbb-8000-ba4c-e880bbb8ac8e">Conclusion</a></div></nav><p id="13317eee-0cbb-8069-9bdf-db81ebd95e58" class="">
+</p></div><div id="13317eee-0cbb-804c-8bb7-db5d1f2aa7ce" style="width:50%" class="column"><h1 id="13317eee-0cbb-8095-a7d3-d5ec18cbdcb8" class="">Introduction</h1><p id="13317eee-0cbb-808d-9686-d3b0ff9d3ae7" class="">Image resizing is an essential process in digital image processing that alters an image&#x27;s dimensions while aiming to preserve quality. It is commonly used in applications such as web design and photography, where fitting various resolutions is necessary. Interpolation methods estimate new pixel values to reduce artifacts during resizing. This study compares four techniques—nearest neighbor, bilinear, bicubic, and biquadratic—to evaluate their effectiveness on different images.</p><h2 id="13317eee-0cbb-804e-b3f7-d944b5a6c9d8" class="">Problem Statement</h2><p id="13317eee-0cbb-8096-a8db-cb55164ebcbb" class="">Resizing images can degrade quality, and different interpolation methods produce varying results. This paper aims to determine which methods—nearest neighbor, bilinear, bicubic, or biquadratic—are most effective under specific conditions and why some perform better than others.</p></div></div><hr id="13317eee-0cbb-80fc-b8a2-f81d5ff62075"/><h1 id="13317eee-0cbb-8075-8590-d6321eacd4ff" class="">Interpolation Methods</h1><p id="13317eee-0cbb-804b-ab33-db0d16d8c8aa" class="">Interpolation is a mathematical technique used to estimate new pixel values when resizing images. Different interpolation methods vary in their approach and effectiveness, impacting the quality of the resized image. This section will explore four commonly used methods—nearest neighbor, bilinear, bicubic, and biquadratic—highlighting their principles, advantages, and limitations in preserving image quality during the resizing process. For this comparison I will be choosing nearest neighbor and bicubic interpolation methods.</p><h2 id="13317eee-0cbb-80b8-8445-ea9ea9de3d42" class=""><strong>Nearest Neighbor</strong></h2><p id="13317eee-0cbb-806d-ba64-e4a7b86cc1bb" class="">Nearest neighbor interpolation is the simplest method for resizing images. It works by assigning the value of the nearest pixel in the original image to the new pixel in the resized image. This technique is fast and easy to implement but can result in blocky or pixelated images, especially when enlarging, as it does not consider the values of surrounding pixels. While it may be suitable for certain applications where speed is prioritized over quality, it often lacks the smoothness and detail provided by more advanced interpolation methods.</p><h3 id="13317eee-0cbb-8048-aa5f-d1109235f51f" class="">Example</h3><figure id="13317eee-0cbb-80f0-bb03-f9bf35cb4e08" class="equation"><style>@import url('https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css')</style><div class="equation-container"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mtext>Original 2x2 Matrix</mtext><mo>=</mo><mrow><mo fence="true">[</mo><mtable rowspacing="0.16em" columnalign="center center" columnspacing="1em"><mtr><mtd><mstyle scriptlevel="0" displaystyle="false"><mn>100</mn></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="false"><mn>1</mn></mstyle></mtd></mtr><mtr><mtd><mstyle scriptlevel="0" displaystyle="false"><mn>0</mn></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="false"><mn>255</mn></mstyle></mtd></mtr></mtable><mo fence="true">]</mo></mrow><mtext> Resized 4x4 Matrix</mtext><mo>=</mo><mrow><mo fence="true">[</mo><mtable rowspacing="0.16em" columnalign="center center center center" columnspacing="1em"><mtr><mtd><mstyle scriptlevel="0" displaystyle="false"><mn>100</mn></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="false"><mn>100</mn></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="false"><mn>1</mn></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="false"><mn>1</mn></mstyle></mtd></mtr><mtr><mtd><mstyle scriptlevel="0" displaystyle="false"><mn>100</mn></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="false"><mn>100</mn></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="false"><mn>1</mn></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="false"><mn>1</mn></mstyle></mtd></mtr><mtr><mtd><mstyle scriptlevel="0" displaystyle="false"><mn>0</mn></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="false"><mn>0</mn></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="false"><mn>255</mn></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="false"><mn>255</mn></mstyle></mtd></mtr><mtr><mtd><mstyle scriptlevel="0" displaystyle="false"><mn>0</mn></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="false"><mn>0</mn></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="false"><mn>255</mn></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="false"><mn>255</mn></mstyle></mtd></mtr></mtable><mo fence="true">]</mo></mrow></mrow><annotation encoding="application/x-tex">\text{Original 2x2 Matrix} = \begin{bmatrix} 100 &amp; 1 \\ 0 &amp; 255 \end{bmatrix} 
+\
+\text{Resized 4x4 Matrix} = \begin{bmatrix}
+100 &amp; 100 &amp; 1 &amp; 1 \\
+100 &amp; 100 &amp; 1 &amp; 1 \\
+0 &amp; 0 &amp; 255 &amp; 255 \\
+0 &amp; 0 &amp; 255 &amp; 255
+\end{bmatrix}
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8889em;vertical-align:-0.1944em;"></span><span class="mord text"><span class="mord">Original 2x2 Matrix</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:2.4em;vertical-align:-0.95em;"></span><span class="minner"><span class="mopen delimcenter" style="top:0em;"><span class="delimsizing size3">[</span></span><span class="mord"><span class="mtable"><span class="col-align-c"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.45em;"><span style="top:-3.61em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">100</span></span></span><span style="top:-2.41em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">0</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.95em;"><span></span></span></span></span></span><span class="arraycolsep" style="width:0.5em;"></span><span class="arraycolsep" style="width:0.5em;"></span><span class="col-align-c"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.45em;"><span style="top:-3.61em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">1</span></span></span><span style="top:-2.41em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">255</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.95em;"><span></span></span></span></span></span></span></span><span class="mclose delimcenter" style="top:0em;"><span class="delimsizing size3">]</span></span></span><span class="mspace"> </span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord text"><span class="mord">Resized 4x4 Matrix</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:4.8em;vertical-align:-2.15em;"></span><span class="minner"><span class="mopen"><span class="delimsizing mult"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:2.65em;"><span style="top:-4.65em;"><span class="pstrut" style="height:6.8em;"></span><span style="width:0.667em;height:4.800em;"><svg xmlns="http://www.w3.org/2000/svg" width='0.667em' height='4.800em' viewBox='0 0 667 4800'><path d='M403 1759 V84 H666 V0 H319 V1759 v1200 v1759 h347 v-84
+H403z M403 1759 V0 H319 V1759 v1200 v1759 h84z'/></svg></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:2.15em;"><span></span></span></span></span></span></span><span class="mord"><span class="mtable"><span class="col-align-c"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:2.65em;"><span style="top:-4.81em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">100</span></span></span><span style="top:-3.61em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">100</span></span></span><span style="top:-2.41em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">0</span></span></span><span style="top:-1.21em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">0</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:2.15em;"><span></span></span></span></span></span><span class="arraycolsep" style="width:0.5em;"></span><span class="arraycolsep" style="width:0.5em;"></span><span class="col-align-c"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:2.65em;"><span style="top:-4.81em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">100</span></span></span><span style="top:-3.61em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">100</span></span></span><span style="top:-2.41em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">0</span></span></span><span style="top:-1.21em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">0</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:2.15em;"><span></span></span></span></span></span><span class="arraycolsep" style="width:0.5em;"></span><span class="arraycolsep" style="width:0.5em;"></span><span class="col-align-c"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:2.65em;"><span style="top:-4.81em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">1</span></span></span><span style="top:-3.61em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">1</span></span></span><span style="top:-2.41em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">255</span></span></span><span style="top:-1.21em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">255</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:2.15em;"><span></span></span></span></span></span><span class="arraycolsep" style="width:0.5em;"></span><span class="arraycolsep" style="width:0.5em;"></span><span class="col-align-c"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:2.65em;"><span style="top:-4.81em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">1</span></span></span><span style="top:-3.61em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">1</span></span></span><span style="top:-2.41em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">255</span></span></span><span style="top:-1.21em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">255</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:2.15em;"><span></span></span></span></span></span></span></span><span class="mclose"><span class="delimsizing mult"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:2.65em;"><span style="top:-4.65em;"><span class="pstrut" style="height:6.8em;"></span><span style="width:0.667em;height:4.800em;"><svg xmlns="http://www.w3.org/2000/svg" width='0.667em' height='4.800em' viewBox='0 0 667 4800'><path d='M347 1759 V0 H0 V84 H263 V1759 v1200 v1759 H0 v84 H347z
+M347 1759 V0 H263 V1759 v1200 v1759 h84z'/></svg></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:2.15em;"><span></span></span></span></span></span></span></span></span></span></span></span></div></figure><h3 id="13417eee-0cbb-80cf-bc9c-ddb4ecc3b8ba" class="">Code</h3><p id="13417eee-0cbb-80b8-8887-d1d7ed27e474" class=""><strong>Inputs:</strong><br/><br/><mark class="highlight-yellow"><mark class="highlight-gray_background"><code><strong>image</strong></code></mark></mark>: array of pixels</p><p id="13417eee-0cbb-801b-a71a-fcdc259c4bac" class=""><mark class="highlight-blue"><mark class="highlight-gray_background"><code><strong>scale</strong></code></mark></mark>: float representing rescaling factor</p><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="13417eee-0cbb-80ce-93cc-d0a897bab0b7" class="code"><code class="language-Python" style="white-space:pre-wrap;word-break:break-all">import numpy as np
+
+def nearest_neighbor_interpolation(input_image, scale_factor):
+    # Get the dimensions of the original image (height, width, number of channels)
+    original_height, original_width, num_channels = input_image.shape
+
+    # Compute the dimensions of the new scaled image
+    new_height = int(original_height * scale_factor)
+    new_width = int(original_width * scale_factor)
+
+    # Create an empty array for the output image with the new dimensions
+    # The dtype is kept the same as the input image to ensure consistency
+    output_image = np.zeros((new_height, new_width, num_channels), dtype=input_image.dtype)
+
+    # Loop over each pixel in the new (output) image
+    for i in range(new_height):
+        for j in range(new_width):
+            # Find the nearest pixel in the original image
+            # Scale the indices back to the original image by dividing by the scale factor
+            # Use &#x27;min&#x27; to avoid out-of-bounds indices (clipping at the edge of the original image)
+            original_i = min(int(i / scale_factor), original_height - 1)
+            original_j = min(int(j / scale_factor), original_width - 1)
+
+            # Copy the value of the nearest pixel from the original image to the new image
+            output_image[i, j] = input_image[original_i, original_j]
+
+    # Return the scaled output image
+    return output_image
+</code></pre><h2 id="13317eee-0cbb-80bf-a484-f9a3dc50c5a1" class=""><strong>Bicubic Interpolation</strong></h2><p id="13317eee-0cbb-80dd-b6f5-dd0a8043e8da" class="">Bicubic interpolation is a method used to estimate unknown values within a 2D grid by using the values of 16 surrounding points (in a 4x4 grid). It is an extension of cubic interpolation and is commonly applied in image processing to produce smoother and more detailed results compared to simpler methods like nearest neighbor and bilinear interpolation. By considering more neighboring pixels, bicubic interpolation provides better accuracy and smoother transitions, making it ideal for tasks like image resizing and transformation.</p><h3 id="13417eee-0cbb-8033-bba5-ddb68415920f" class="">Code</h3><p id="13417eee-0cbb-8087-9f7a-dacd98d0fbe3" class=""><strong>Inputs:</strong><br/><br/><mark class="highlight-yellow"><mark class="highlight-gray_background"><code><strong>image</strong></code></mark></mark>: array of pixels</p><p id="13417eee-0cbb-80b8-9108-ed18ab0c5863" class=""><mark class="highlight-blue"><mark class="highlight-gray_background"><code><strong>scale</strong></code></mark></mark>: float representing rescaling factor</p><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="13417eee-0cbb-8006-b4c0-e0cef1f1c3fd" class="code"><code class="language-Python" style="white-space:pre-wrap;word-break:break-all">import numpy as np
+
+
+def cubic_interpolate(p, x):
+    # Cubic interpolation formula using 4 points
+    return (
+            p[1] +
+            0.5 * x * (p[2] - p[0] +
+                       x * (2.0 * p[0] - 5.0 * p[1] + 4.0 * p[2] - p[3] +
+                            x * (3.0 * (p[1] - p[2]) + p[3] - p[0])))
+    )
+
+def bicubic_interpolation(image, scale):
+    orig_height, orig_width, channels = image.shape
+    new_height = int(orig_height * scale)
+    new_width = int(orig_width * scale)
+
+    # Output image
+    new_image = np.zeros((new_height, new_width, channels), dtype=np.uint8)
+
+    # Scale ratios
+    row_scale = orig_height / new_height
+    col_scale = orig_width / new_width
+
+    for i in range(new_height):
+        for j in range(new_width):
+            # Corresponding position in the original image
+            x = i * row_scale
+            y = j * col_scale
+
+            # Calculate indices of the top-left corner of the 4x4 neighborhood
+            x0 = int(np.floor(x)) - 1
+            y0 = int(np.floor(y)) - 1
+
+            # Distance from the original pixel position
+            dx = x - np.floor(x)
+            dy = y - np.floor(y)
+
+            # Iterate over channels (e.g., RGB)
+            for c in range(channels):
+                # 4x4 neighborhood
+                neighborhood = np.zeros((4, 4), dtype=np.float32)
+
+                for m in range(4):
+                    for n in range(4):
+                        # Get the pixel values, handling boundary conditions with clamping
+                        xn = np.clip(x0 + m, 0, orig_height - 1)
+                        yn = np.clip(y0 + n, 0, orig_width - 1)
+                        neighborhood[m, n] = image[int(xn), int(yn), c]
+
+                # Interpolate along x for each row
+                interpolated_rows = np.array([cubic_interpolate(neighborhood[m, :], dy) for m in range(4)])
+
+                # Interpolate along y to get the final value
+                pixel_value = cubic_interpolate(interpolated_rows, dx)
+
+                # Clip the value to the range [0, 255] and assign it to the new image
+                new_image[i, j, c] = np.clip(pixel_value, 0, 255)
+
+    return new_image</code></pre><h2 id="13c17eee-0cbb-8038-a43e-c6a178ad90ef" class="">Visualization Code</h2><p id="13c17eee-0cbb-8089-af55-eea683cea55c" class="">Following is a method to run</p><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="13c17eee-0cbb-80ad-959f-ead655c75836" class="code"><code class="language-Python" style="white-space:pre-wrap;word-break:break-all">import cv2
+import numpy as np
+import matplotlib.pyplot as plt
+
+
+def plot():
+    # Convert BGR to RGB for displaying with matplotlib
+    input_image_rgb = cv2.cvtColor(input_image, cv2.COLOR_BGR2RGB)
+    resized_image_rgb = cv2.cvtColor(resized_image_neighbor, cv2.COLOR_BGR2RGB)
+    resized_image_quad_rgb = cv2.cvtColor(resized_image_biquad, cv2.COLOR_BGR2RGB)
+    # Enable interactive mode
+    plt.ion()
+    # Display the original image in a separate window
+    plt.figure(figsize=(6, 6))
+    plt.imshow(input_image_rgb)
+    plt.axis(&#x27;off&#x27;)
+    plt.show()
+    # Display the nearest neighbor resized image in a separate window
+    plt.figure(figsize=(6, 6))
+    plt.imshow(resized_image_rgb)
+    plt.axis(&#x27;off&#x27;)
+    plt.show()
+    # Display the bicubic resized image in a separate window
+    plt.figure(figsize=(6, 6))
+    plt.imshow(resized_image_quad_rgb)
+    plt.axis(&#x27;off&#x27;)
+    plt.show()
+    # Keep the plots open
+    plt.ioff()  # Turn off interactive mode
+    plt.show()  # This ensures that the last window stays open until closed
+
+
+if __name__ == &#x27;__main__&#x27;:
+    image = &#x27;image.jpg&#x27;
+    input_image = cv2.imread(image)
+    scale_factor = 5
+    
+    # Print dimensions of the input image
+    print(f&quot;Input Image Dimensions: {input_image.shape[1]}x{input_image.shape[0]} (Width x Height)&quot;)
+
+		# Resize the input image
+    resized_image_neighbor = nearest_neighbor_interpolation(input_image, scale_factor)
+    resized_image_biquad = bicubic_interpolation(input_image, scale_factor)
+    
+    # Print dimensions of the resized image
+    print(f&quot;Resized Image Dimensions: {resized_image_neighbor.shape[1]}x{resized_image_neighbor.shape[0]} (Width x Height)&quot;)
+    
+    plot()</code></pre><hr id="13317eee-0cbb-8049-9ad8-e90b406081d9"/><h1 id="13317eee-0cbb-80a6-b43f-c8bfc0761175" class="">Experimental Setup</h1><h2 id="13317eee-0cbb-80c3-a4d8-d4b6b9d15bcf" class="">Image Selection</h2><p id="13417eee-0cbb-8068-94e4-f57bd6789cfc" class="">When selecting images for testing interpolation methods, it&#x27;s essential to consider their characteristics. For instance, images with smooth gradients, such as landscapes or soft portraits, are ideal for evaluating <mark class="highlight-default"><mark class="highlight-gray_background"><code><strong>bicubic interpolation</strong></code></mark></mark>, as this method excels in producing smooth transitions and preserving fine details. Conversely, <mark class="highlight-default"><mark class="highlight-gray_background"><code><strong>nearest neighbor interpolation</strong></code></mark></mark> performs well on images with distinct edges and flat areas of color, such as pixel art or logos, where sharpness is paramount, but still gets outperformed. Choosing a low-resolution image for significant upscaling can highlight the strengths and weaknesses of both methods, allowing for a clear comparison of how each interpolation technique handles various types of content. By analyzing these differences, we can better understand the applications and limitations of each method.<br/><br/></p><h2 id="13317eee-0cbb-80b5-bca5-d4a046185ab5" class="">Testing</h2><h3 id="13417eee-0cbb-8039-aa8d-f949759aaef4" class="">Bicubic Interpolation Works Better</h3><p id="13417eee-0cbb-805b-9e4f-fb7c16fcaa9b" class="">The displayed images highlight the differences between the original and the resized versions created using <mark class="highlight-default"><mark class="highlight-gray_background"><code><strong>nearest neighbor interpolation</strong></code></mark></mark> and <mark class="highlight-default"><mark class="highlight-gray_background"><code><strong>bicubic interpolation</strong></code></mark></mark>. The original image features 8x8 grid of random pixel values. <mark class="highlight-default"><mark class="highlight-gray_background"><code><strong>Nearest neighbor interpolation</strong></code></mark></mark>, while simple, produces exact replica of the original image, but each original pixel gets split into 4 identical new pixels of same RGB value. This method is less suitable for photographs with soft gradients. In contrast, <mark class="highlight-default"><mark class="highlight-gray_background"><code><strong>bicubic interpolation</strong></code></mark></mark> delivers a much smoother resized image by considering the values of surrounding pixels to create new pixel values, resulting in fluid transitions and better color blending. Although it may introduce slight blurriness, bicubic interpolation generally preserves image integrity far better than <mark class="highlight-default"><mark class="highlight-gray_background"><code><strong>nearest neighbor interpolation</strong></code></mark></mark>.</p><ul id="13417eee-0cbb-80c2-84c3-c0d01b054b48" class="toggle"><li><details open=""><summary><mark class="highlight-blue"><mark class="highlight-gray_background"><code><strong>scale</strong></code></mark></mark>: 2</summary><div id="13417eee-0cbb-8003-89b9-e4e9d8afc75e" class="column-list"><div id="13417eee-0cbb-80f5-9253-fa51e7b003e2" style="width:33.333333333333336%" class="column"><p id="13417eee-0cbb-8020-a217-e7c1b038b408" class="">Original Image</p><figure id="13417eee-0cbb-8058-97ab-f9fc7108f2cf" class="image"><a href="Figure_1.png"><img style="width:413.328125px" src="Figure_1.png"/></a></figure></div><div id="13417eee-0cbb-80d5-9a67-c8c93d076477" style="width:33.333333333333336%" class="column"><p id="13417eee-0cbb-80b2-8af8-c53dfbf0c468" class="">Nearest Neighbor Interpolation</p><figure id="13417eee-0cbb-8063-998e-d58405f408b2" class="image"><a href="Figure_1%201.png"><img style="width:413.328125px" src="Figure_1%201.png"/></a></figure></div><div id="13417eee-0cbb-80a5-b185-fc8e9c0f479b" style="width:33.33333333333333%" class="column"><p id="13417eee-0cbb-8025-b2d3-f85494ab7a94" class="">Bicubic Interpolation</p><figure id="13417eee-0cbb-80db-8a54-ef6e2b76bba0" class="image"><a href="Figure_1%202.png"><img style="width:413.328125px" src="Figure_1%202.png"/></a></figure></div></div></details></li></ul><ul id="13417eee-0cbb-8081-a396-cdbfb04dbd75" class="toggle"><li><details open=""><summary><mark class="highlight-blue"><mark class="highlight-gray_background"><code><strong>scale</strong></code></mark></mark>: 3</summary><div id="13417eee-0cbb-8014-aec9-d6a4862d9075" class="column-list"><div id="46e19ea8-e6de-4e2a-89a4-6e86744f11dd" style="width:33.333333333333336%" class="column"><p id="a43242bc-a2c5-47a9-a54b-5b61920807f6" class="">Original Image</p><figure id="af6dbeea-5b61-4659-8ff1-7f6f7cacc155" class="image"><a href="Figure_1.png"><img style="width:413.328125px" src="Figure_1.png"/></a></figure></div><div id="b2c2ad8e-41d1-4479-89ec-96de9febf930" style="width:33.333333333333336%" class="column"><p id="400ae6fd-1f7d-42f7-8ec8-020c110956c8" class="">Nearest Neighbor Interpolation</p><figure id="9a068938-8b39-4cc4-beb7-817b929caac7" class="image"><a href="Figure_1%201.png"><img style="width:413.328125px" src="Figure_1%201.png"/></a></figure></div><div id="923ba070-6e18-41e9-92cb-9016f0ce92f0" style="width:33.33333333333333%" class="column"><p id="037b6956-2b8a-42c9-bcb8-18bc699cd9da" class="">Bicubic Interpolation</p><figure id="13417eee-0cbb-8090-8dfc-d35943701be9" class="image"><a href="Figure_3.png"><img style="width:413.328125px" src="Figure_3.png"/></a></figure></div></div></details></li></ul><ul id="13417eee-0cbb-8070-b168-cd6e74e6865d" class="toggle"><li><details open=""><summary><mark class="highlight-blue"><mark class="highlight-gray_background"><code><strong>scale</strong></code></mark></mark>: 0.8</summary><div id="13417eee-0cbb-80e1-8528-e836f72e6028" class="column-list"><div id="25bb656e-653a-43e1-b8b2-d74e3fdaf968" style="width:33.333333333333336%" class="column"><p id="96a2c1f3-c4e6-4fe5-a4da-110a4cf2482e" class="">Original Image</p><figure id="e40f148d-927b-48bd-8dec-9aec238213ef" class="image"><a href="Figure_1.png"><img style="width:413.328125px" src="Figure_1.png"/></a></figure></div><div id="f9e8ff49-978d-42e1-bbba-11027137fdc4" style="width:33.333333333333336%" class="column"><p id="aa8c03dc-90b6-4b62-bd62-be082441230e" class="">Nearest Neighbor Interpolation</p><figure id="13417eee-0cbb-809e-954d-f13effc89eb0" class="image"><a href="Figure_2.png"><img style="width:413.328125px" src="Figure_2.png"/></a></figure></div><div id="017310fc-aca3-408d-8d68-6e59121104a9" style="width:33.33333333333333%" class="column"><p id="5dccb8cb-bb0b-451d-939c-37b5987eeb30" class="">Bicubic Interpolation</p><figure id="13417eee-0cbb-80ab-aa2e-ed1c50f9bfb4" class="image"><a href="Figure_3%201.png"><img style="width:413.328125px" src="Figure_3%201.png"/></a></figure></div></div></details></li></ul><p id="13417eee-0cbb-8043-93a3-e0f23055d945" class="">
+</p><h3 id="13417eee-0cbb-80f9-8428-c54a08838fd5" class="">Both Methods Struggle</h3><ul id="13417eee-0cbb-80e1-a3fb-dc8776e8348f" class="bulleted-list"><li style="list-style-type:disc">Original Image<figure id="13417eee-0cbb-80f0-8afe-c27274cd1c7a" class="image"><a href="tsunami.jpg"><img style="width:3859px" src="tsunami.jpg"/></a></figure></li></ul><div id="13417eee-0cbb-80ae-b158-ee1ed327976d" class="column-list"><div id="13417eee-0cbb-80e0-a5cc-d0a2a6bdb83f" style="width:50%" class="column"><ul id="13417eee-0cbb-805a-b068-ff4152e4e033" class="bulleted-list"><li style="list-style-type:disc">Nearest Neighbor Interpolation<figure id="13417eee-0cbb-80fb-becc-daa75d377a25" class="image"><a href="Figure_2%201.png"><img style="width:465.1000061035156px" src="Figure_2%201.png"/></a></figure></li></ul></div><div id="13417eee-0cbb-80bc-ac54-e8188c5b7040" style="width:50%" class="column"><ul id="13417eee-0cbb-8070-8e4c-ccaae62ac990" class="bulleted-list"><li style="list-style-type:disc">Bicubic Interpolation<figure id="13417eee-0cbb-803c-8391-d0257bd92e64" class="image"><a href="Figure_3%202.png"><img style="width:465.1000061035156px" src="Figure_3%202.png"/></a></figure></li></ul></div></div><p id="13417eee-0cbb-80dd-8088-c60a95def1d6" class="">At first glance visually there might be no difference at all, but if we zoom in.</p><div id="13417eee-0cbb-8054-9a27-e66b34b0c3cd" class="column-list"><div id="13417eee-0cbb-80d5-a81e-d8044ad8cfcf" style="width:33.333333333333336%" class="column"><ul id="13417eee-0cbb-8022-b39d-f089a83b94c6" class="bulleted-list"><li style="list-style-type:disc">Original Image<figure id="13417eee-0cbb-8004-9197-c87c9b49081f" class="image"><a href="Figure_1%203.png"><img style="width:413.328125px" src="Figure_1%203.png"/></a></figure><p id="13417eee-0cbb-8080-b03b-ef5a6ced86d5" class="">
+</p></li></ul></div><div id="13417eee-0cbb-8037-b8c0-d0cee9a25ae1" style="width:33.333333333333336%" class="column"><ul id="13417eee-0cbb-8075-9e42-c86948363841" class="bulleted-list"><li style="list-style-type:disc">Nearest Neighbor Interpolation<figure id="13417eee-0cbb-80d2-8f34-f8ac8037d326" class="image"><a href="Figure_2%202.png"><img style="width:413.328125px" src="Figure_2%202.png"/></a></figure></li></ul></div><div id="13417eee-0cbb-80de-90fa-de58b33b745a" style="width:33.33333333333333%" class="column"><ul id="13417eee-0cbb-8057-a708-d64a920175d9" class="bulleted-list"><li style="list-style-type:disc">Bicubic Interpolation<figure id="13417eee-0cbb-801a-89df-f656ee2a01f9" class="image"><a href="Figure_3%203.png"><img style="width:413.328125px" src="Figure_3%203.png"/></a></figure></li></ul></div></div><p id="13417eee-0cbb-800b-980a-f879b83db24d" class="">Both <mark class="highlight-default"><mark class="highlight-gray_background"><code><strong>nearest neighbor</strong></code></mark></mark> and <mark class="highlight-default"><mark class="highlight-gray_background"><code><strong>bicubic interpolation</strong></code></mark></mark> were applied to a vibrant image with distinct edges. While both methods faced challenges in accurately reproducing finer details, it was clear that <mark class="highlight-default"><mark class="highlight-gray_background"><code><strong>bicubic interpolation</strong></code></mark></mark> outperformed its counterpart. Although <mark class="highlight-default"><mark class="highlight-gray_background"><code><strong>nearest neighbor</strong></code></mark></mark> struggled to maintain the image&#x27;s sharpness and exhibited noticeable pixelation, bicubic interpolation demonstrated a superior ability to smooth out transitions and preserve edge integrity, resulting in a more visually appealing and detailed resized image. Thus, despite the difficulties encountered by both methods, bicubic interpolation clearly emerged as the more effective choice for this particular image.</p><p id="13417eee-0cbb-8064-afb4-c096eecfaa8f" class="">
+</p><hr id="13417eee-0cbb-8041-b3b4-da868a5c9c27"/><h1 id="13417eee-0cbb-801d-9aaf-e1b09c4c3cb7" class="">Error Estimation</h1><p id="13417eee-0cbb-8021-8651-d24d3713f9db" class="">For error estimation we can upscale image first by some factor and then descale it with same factor. Optimally resulting image should be same with the original one. </p><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="13417eee-0cbb-8039-ace9-c94ef335e8de" class="code"><code class="language-Python" style="white-space:pre-wrap;word-break:break-all">import numpy as np
+
+def calculate_error(original_image, resized_image):
+    # Ensure the images are the same shape
+    if original_image.shape != resized_image.shape:
+        raise ValueError(&quot;Original and resized images must have the same dimensions.&quot;)
+
+    # Calculate the error matrix
+    error_matrix = np.abs(original_image - resized_image)
+
+    # Calculate matrix norms
+    l1_norm = np.sum(error_matrix)  # L1 norm
+    l2_norm = np.sqrt(np.sum(error_matrix ** 2))  # L2 norm
+    infinity_norm = np.max(error_matrix)  # Infinity norm
+
+    return l1_norm, l2_norm, infinity_norm
+    </code></pre><p id="13417eee-0cbb-801f-b75c-fb47684229d3" class="">
+</p><p id="13417eee-0cbb-80ce-9520-d2cbadb29cd0" class="">Result of downscaling and upscaling by a <mark class="highlight-blue"><mark class="highlight-gray_background"><code><strong>scale</strong></code></mark></mark><strong> </strong>of 5</p><div id="13417eee-0cbb-80f0-9b1a-e779407e4cc1" class="column-list"><div id="13417eee-0cbb-8021-8c58-c03ed6d322d1" style="width:33.333333333333336%" class="column"><ul id="13417eee-0cbb-8069-9e6b-d37e9673f195" class="bulleted-list"><li style="list-style-type:disc">Original Image<figure id="13417eee-0cbb-80d0-a58e-ead45794013f" class="image"><a href="Figure_1%204.png"><img style="width:413.328125px" src="Figure_1%204.png"/></a></figure></li></ul></div><div id="13417eee-0cbb-80a3-a2d2-fcb8eaa686fd" style="width:33.333333333333336%" class="column"><ul id="13417eee-0cbb-80ef-9c03-c8acd390b1b4" class="bulleted-list"><li style="list-style-type:disc">Nearest Neighbor Interpolation<figure id="13417eee-0cbb-8027-a98c-f03725d10c16" class="image"><a href="Figure_2%203.png"><img style="width:413.328125px" src="Figure_2%203.png"/></a></figure></li></ul></div><div id="13417eee-0cbb-8094-a0be-c2de319d2f9c" style="width:33.33333333333333%" class="column"><ul id="13417eee-0cbb-8032-8a3e-e29876f672bf" class="bulleted-list"><li style="list-style-type:disc">Bicubic Interpolation<figure id="13417eee-0cbb-80e9-b0ea-f4ff516056bb" class="image"><a href="Figure_3%204.png"><img style="width:413.328125px" src="Figure_3%204.png"/></a></figure></li></ul></div></div><p id="13417eee-0cbb-805c-823f-c27552abadde" class="">
+</p><p id="13417eee-0cbb-808e-90fd-dc7706337ef1" class="">Zoomed In</p><div id="13417eee-0cbb-80ed-98d3-c237e75156fe" class="column-list"><div id="dde9df51-5920-43aa-89f8-619dda01bd41" style="width:33.333333333333336%" class="column"><ul id="ae35866d-22bb-44e5-8105-03fdda280016" class="bulleted-list"><li style="list-style-type:disc">Original Image<figure id="13417eee-0cbb-80d2-9446-e5e6db8158b3" class="image"><a href="Figure_1%205.png"><img style="width:413.328125px" src="Figure_1%205.png"/></a></figure></li></ul></div><div id="2b466ecb-7bf2-4167-9748-79fb28918fc2" style="width:33.333333333333336%" class="column"><ul id="41c5b483-e6eb-4d03-844a-5a342f84a12e" class="bulleted-list"><li style="list-style-type:disc">Nearest Neighbor Interpolation<figure id="13417eee-0cbb-80e9-b9bd-cd47c9edaafe" class="image"><a href="Figure_2%204.png"><img style="width:413.328125px" src="Figure_2%204.png"/></a></figure></li></ul></div><div id="b277d4d8-a6b1-4da9-a353-452754a36e7a" style="width:33.33333333333333%" class="column"><ul id="f634e02b-7fae-40c8-94d1-1e997c3039b5" class="bulleted-list"><li style="list-style-type:disc">Bicubic Interpolation<figure id="13417eee-0cbb-8058-a1d9-e91037d8c742" class="image"><a href="Figure_3%205.png"><img style="width:413.328125px" src="Figure_3%205.png"/></a></figure></li></ul></div></div><div id="13417eee-0cbb-80be-9a4d-c82dc1be5138" class="column-list"><div id="13417eee-0cbb-8038-941f-f9d3130ea7bc" style="width:12.5%" class="column"><p id="13417eee-0cbb-80de-b146-c339ab375efd" class="">
+</p></div><div id="13417eee-0cbb-80df-8f02-e636d89c430f" style="width:87.5%" class="column"><table id="13417eee-0cbb-8012-94bb-e4f1ff9e332f" class="simple-table"><thead class="simple-table-header"><tr id="b1ff5913-265e-4209-b7e8-68091653a6b2"><th id="OWXO" class="simple-table-header-color simple-table-header" style="width:307.9583333333333px"></th><th id="=x}k" class="simple-table-header-color simple-table-header" style="width:307.9583333333333px">Nearest Neighbor</th><th id="&gt;fun" class="simple-table-header-color simple-table-header" style="width:307.9583333333333px">Bicubic</th></tr></thead><tbody><tr id="12daec2e-7b08-428a-baa1-a70772ba8c92"><th id="OWXO" class="simple-table-header-color simple-table-header" style="width:307.9583333333333px">L1 Norm</th><td id="=x}k" class="" style="width:307.9583333333333px">3490930339</td><td id="&gt;fun" class="" style="width:307.9583333333333px">3446444783</td></tr><tr id="975bd130-86c6-475e-b314-b89f281f81fa"><th id="OWXO" class="simple-table-header-color simple-table-header" style="width:307.9583333333333px">L2 Norm</th><td id="=x}k" class="" style="width:307.9583333333333px">40580.28</td><td id="&gt;fun" class="" style="width:307.9583333333333px">38058.06</td></tr><tr id="13417eee-0cbb-80e7-affa-c27f2204f83c"><th id="OWXO" class="simple-table-header-color simple-table-header" style="width:307.9583333333333px">Infinity</th><td id="=x}k" class="" style="width:307.9583333333333px">255</td><td id="&gt;fun" class="" style="width:307.9583333333333px">255</td></tr></tbody></table></div></div><p id="13417eee-0cbb-802a-a8d4-f23fc4969d1b" class="">The experiment demonstrated that downscaling an image by a <mark class="highlight-blue"><code><strong>scale </strong></code></mark>of 5, followed by upscaling it by the same factor, highlighted the strengths and weaknesses of the <mark class="highlight-default"><mark class="highlight-gray_background"><code><strong>nearest neighbor</strong></code></mark></mark> and <mark class="highlight-default"><mark class="highlight-gray_background"><code><strong>bicubic interpolation</strong></code></mark></mark> methods. The <mark class="highlight-default"><mark class="highlight-gray_background"><code><strong>nearest neighbor interpolation</strong></code></mark></mark> struggled to preserve the original pixel values, resulting in a noticeable loss of detail and quality in the resized image. In contrast, the <mark class="highlight-default"><mark class="highlight-gray_background"><code><strong>bicubic interpolation</strong></code></mark></mark> method managed to approximate the original pixel values more effectively, leading to a more visually coherent result. Numerical evaluations further confirmed this observation, as the matrix norms indicated that bicubic interpolation produced significantly lower difference values compared to nearest neighbor interpolation. This suggests that bicubic interpolation is superior for maintaining image fidelity during resizing operations, especially when the goal is to preserve the nuances of the original image.</p><p id="13417eee-0cbb-8066-ac56-d606b75c9ad9" class="">
+</p><hr id="13317eee-0cbb-8005-904d-f1e48aa97639"/><h1 id="13317eee-0cbb-8000-ba4c-e880bbb8ac8e" class="">Conclusion</h1><p id="13417eee-0cbb-80ec-abb8-d69b57b28d4f" class="">This study has compared <mark class="highlight-default"><mark class="highlight-gray_background"><code><strong>nearest neighbor</strong></code></mark></mark> and <mark class="highlight-default"><mark class="highlight-gray_background"><code><strong>bicubic interpolation</strong></code></mark></mark> methods in image resizing, focusing on their effectiveness in preserving image quality across various scaling scenarios. While <mark class="highlight-default"><mark class="highlight-gray_background"><code><strong>nearest neighbor interpolation</strong></code></mark></mark> is efficient and produces clear pixelated images, it tends to struggle with smooth gradients and detail preservation, resulting in blockiness during enlargement. In contrast, <mark class="highlight-default"><mark class="highlight-gray_background"><code><strong>bicubic interpolation</strong></code></mark></mark>, despite introducing slight blurriness, offers significantly smoother transitions and better color blending, maintaining finer details and edge integrity in resized images.</p><p id="13417eee-0cbb-8060-accd-c61573907089" class="">The experiments demonstrated that bicubic interpolation outperforms <mark class="highlight-default"><mark class="highlight-gray_background"><code><strong>nearest neighbor interpolation</strong></code></mark></mark> in scenarios involving photographs and images with subtle gradients, while still facing challenges with highly detailed and vibrant images. Overall, the findings suggest that for most applications where image quality is paramount, <mark class="highlight-default"><mark class="highlight-gray_background"><code><strong>bicubic interpolation</strong></code></mark></mark> is the preferred choice. However, the selection of an interpolation method should ultimately depend on the specific requirements of the task at hand, balancing speed, quality, and the characteristics of the images being processed. Further research could explore hybrid approaches or more advanced methods to optimize image resizing in various contexts.</p></div></article><span class="sans" style="font-size:14px;padding-top:2em"></span></body></html>

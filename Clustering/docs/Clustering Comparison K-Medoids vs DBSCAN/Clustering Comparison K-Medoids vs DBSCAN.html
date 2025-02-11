@@ -1,0 +1,859 @@
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"/><title>Clustering Comparison: K-Medoids vs DBSCAN</title><style>
+/* cspell:disable-file */
+/* webkit printing magic: print all background colors */
+html {
+	-webkit-print-color-adjust: exact;
+}
+* {
+	box-sizing: border-box;
+	-webkit-print-color-adjust: exact;
+}
+
+html,
+body {
+	margin: 0;
+	padding: 0;
+}
+@media only screen {
+	body {
+		margin: 2em auto;
+		max-width: 900px;
+		color: rgb(55, 53, 47);
+	}
+}
+
+body {
+	line-height: 1.5;
+	white-space: pre-wrap;
+}
+
+a,
+a.visited {
+	color: inherit;
+	text-decoration: underline;
+}
+
+.pdf-relative-link-path {
+	font-size: 80%;
+	color: #444;
+}
+
+h1,
+h2,
+h3 {
+	letter-spacing: -0.01em;
+	line-height: 1.2;
+	font-weight: 600;
+	margin-bottom: 0;
+}
+
+.page-title {
+	font-size: 2.5rem;
+	font-weight: 700;
+	margin-top: 0;
+	margin-bottom: 0.75em;
+}
+
+h1 {
+	font-size: 1.875rem;
+	margin-top: 1.875rem;
+}
+
+h2 {
+	font-size: 1.5rem;
+	margin-top: 1.5rem;
+}
+
+h3 {
+	font-size: 1.25rem;
+	margin-top: 1.25rem;
+}
+
+.source {
+	border: 1px solid #ddd;
+	border-radius: 3px;
+	padding: 1.5em;
+	word-break: break-all;
+}
+
+.callout {
+	border-radius: 3px;
+	padding: 1rem;
+}
+
+figure {
+	margin: 1.25em 0;
+	page-break-inside: avoid;
+}
+
+figcaption {
+	opacity: 0.5;
+	font-size: 85%;
+	margin-top: 0.5em;
+}
+
+mark {
+	background-color: transparent;
+}
+
+.indented {
+	padding-left: 1.5em;
+}
+
+hr {
+	background: transparent;
+	display: block;
+	width: 100%;
+	height: 1px;
+	visibility: visible;
+	border: none;
+	border-bottom: 1px solid rgba(55, 53, 47, 0.09);
+}
+
+img {
+	max-width: 100%;
+}
+
+@media only print {
+	img {
+		max-height: 100vh;
+		object-fit: contain;
+	}
+}
+
+@page {
+	margin: 1in;
+}
+
+.collection-content {
+	font-size: 0.875rem;
+}
+
+.column-list {
+	display: flex;
+	justify-content: space-between;
+}
+
+.column {
+	padding: 0 1em;
+}
+
+.column:first-child {
+	padding-left: 0;
+}
+
+.column:last-child {
+	padding-right: 0;
+}
+
+.table_of_contents-item {
+	display: block;
+	font-size: 0.875rem;
+	line-height: 1.3;
+	padding: 0.125rem;
+}
+
+.table_of_contents-indent-1 {
+	margin-left: 1.5rem;
+}
+
+.table_of_contents-indent-2 {
+	margin-left: 3rem;
+}
+
+.table_of_contents-indent-3 {
+	margin-left: 4.5rem;
+}
+
+.table_of_contents-link {
+	text-decoration: none;
+	opacity: 0.7;
+	border-bottom: 1px solid rgba(55, 53, 47, 0.18);
+}
+
+table,
+th,
+td {
+	border: 1px solid rgba(55, 53, 47, 0.09);
+	border-collapse: collapse;
+}
+
+table {
+	border-left: none;
+	border-right: none;
+}
+
+th,
+td {
+	font-weight: normal;
+	padding: 0.25em 0.5em;
+	line-height: 1.5;
+	min-height: 1.5em;
+	text-align: left;
+}
+
+th {
+	color: rgba(55, 53, 47, 0.6);
+}
+
+ol,
+ul {
+	margin: 0;
+	margin-block-start: 0.6em;
+	margin-block-end: 0.6em;
+}
+
+li > ol:first-child,
+li > ul:first-child {
+	margin-block-start: 0.6em;
+}
+
+ul > li {
+	list-style: disc;
+}
+
+ul.to-do-list {
+	padding-inline-start: 0;
+}
+
+ul.to-do-list > li {
+	list-style: none;
+}
+
+.to-do-children-checked {
+	text-decoration: line-through;
+	opacity: 0.375;
+}
+
+ul.toggle > li {
+	list-style: none;
+}
+
+ul {
+	padding-inline-start: 1.7em;
+}
+
+ul > li {
+	padding-left: 0.1em;
+}
+
+ol {
+	padding-inline-start: 1.6em;
+}
+
+ol > li {
+	padding-left: 0.2em;
+}
+
+.mono ol {
+	padding-inline-start: 2em;
+}
+
+.mono ol > li {
+	text-indent: -0.4em;
+}
+
+.toggle {
+	padding-inline-start: 0em;
+	list-style-type: none;
+}
+
+/* Indent toggle children */
+.toggle > li > details {
+	padding-left: 1.7em;
+}
+
+.toggle > li > details > summary {
+	margin-left: -1.1em;
+}
+
+.selected-value {
+	display: inline-block;
+	padding: 0 0.5em;
+	background: rgba(206, 205, 202, 0.5);
+	border-radius: 3px;
+	margin-right: 0.5em;
+	margin-top: 0.3em;
+	margin-bottom: 0.3em;
+	white-space: nowrap;
+}
+
+.collection-title {
+	display: inline-block;
+	margin-right: 1em;
+}
+
+.page-description {
+	margin-bottom: 2em;
+}
+
+.simple-table {
+	margin-top: 1em;
+	font-size: 0.875rem;
+	empty-cells: show;
+}
+.simple-table td {
+	height: 29px;
+	min-width: 120px;
+}
+
+.simple-table th {
+	height: 29px;
+	min-width: 120px;
+}
+
+.simple-table-header-color {
+	background: rgb(247, 246, 243);
+	color: black;
+}
+.simple-table-header {
+	font-weight: 500;
+}
+
+time {
+	opacity: 0.5;
+}
+
+.icon {
+	display: inline-block;
+	max-width: 1.2em;
+	max-height: 1.2em;
+	text-decoration: none;
+	vertical-align: text-bottom;
+	margin-right: 0.5em;
+}
+
+img.icon {
+	border-radius: 3px;
+}
+
+.user-icon {
+	width: 1.5em;
+	height: 1.5em;
+	border-radius: 100%;
+	margin-right: 0.5rem;
+}
+
+.user-icon-inner {
+	font-size: 0.8em;
+}
+
+.text-icon {
+	border: 1px solid #000;
+	text-align: center;
+}
+
+.page-cover-image {
+	display: block;
+	object-fit: cover;
+	width: 100%;
+	max-height: 30vh;
+}
+
+.page-header-icon {
+	font-size: 3rem;
+	margin-bottom: 1rem;
+}
+
+.page-header-icon-with-cover {
+	margin-top: -0.72em;
+	margin-left: 0.07em;
+}
+
+.page-header-icon img {
+	border-radius: 3px;
+}
+
+.link-to-page {
+	margin: 1em 0;
+	padding: 0;
+	border: none;
+	font-weight: 500;
+}
+
+p > .user {
+	opacity: 0.5;
+}
+
+td > .user,
+td > time {
+	white-space: nowrap;
+}
+
+input[type="checkbox"] {
+	transform: scale(1.5);
+	margin-right: 0.6em;
+	vertical-align: middle;
+}
+
+p {
+	margin-top: 0.5em;
+	margin-bottom: 0.5em;
+}
+
+.image {
+	border: none;
+	margin: 1.5em 0;
+	padding: 0;
+	border-radius: 0;
+	text-align: center;
+}
+
+.code,
+code {
+	background: rgba(135, 131, 120, 0.15);
+	border-radius: 3px;
+	padding: 0.2em 0.4em;
+	border-radius: 3px;
+	font-size: 85%;
+	tab-size: 2;
+}
+
+code {
+	color: #eb5757;
+}
+
+.code {
+	padding: 1.5em 1em;
+}
+
+.code-wrap {
+	white-space: pre-wrap;
+	word-break: break-all;
+}
+
+.code > code {
+	background: none;
+	padding: 0;
+	font-size: 100%;
+	color: inherit;
+}
+
+blockquote {
+	font-size: 1.25em;
+	margin: 1em 0;
+	padding-left: 1em;
+	border-left: 3px solid rgb(55, 53, 47);
+}
+
+.bookmark {
+	text-decoration: none;
+	max-height: 8em;
+	padding: 0;
+	display: flex;
+	width: 100%;
+	align-items: stretch;
+}
+
+.bookmark-title {
+	font-size: 0.85em;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	height: 1.75em;
+	white-space: nowrap;
+}
+
+.bookmark-text {
+	display: flex;
+	flex-direction: column;
+}
+
+.bookmark-info {
+	flex: 4 1 180px;
+	padding: 12px 14px 14px;
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+}
+
+.bookmark-image {
+	width: 33%;
+	flex: 1 1 180px;
+	display: block;
+	position: relative;
+	object-fit: cover;
+	border-radius: 1px;
+}
+
+.bookmark-description {
+	color: rgba(55, 53, 47, 0.6);
+	font-size: 0.75em;
+	overflow: hidden;
+	max-height: 4.5em;
+	word-break: break-word;
+}
+
+.bookmark-href {
+	font-size: 0.75em;
+	margin-top: 0.25em;
+}
+
+.sans { font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol"; }
+.code { font-family: "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace; }
+.serif { font-family: Lyon-Text, Georgia, ui-serif, serif; }
+.mono { font-family: iawriter-mono, Nitti, Menlo, Courier, monospace; }
+.pdf .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK JP'; }
+.pdf:lang(zh-CN) .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK SC'; }
+.pdf:lang(zh-TW) .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK TC'; }
+.pdf:lang(ko-KR) .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK KR'; }
+.pdf .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK JP'; }
+.pdf:lang(zh-CN) .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK SC'; }
+.pdf:lang(zh-TW) .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK TC'; }
+.pdf:lang(ko-KR) .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK KR'; }
+.pdf .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK JP'; }
+.pdf:lang(zh-CN) .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK SC'; }
+.pdf:lang(zh-TW) .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK TC'; }
+.pdf:lang(ko-KR) .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK KR'; }
+.pdf .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK JP'; }
+.pdf:lang(zh-CN) .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK SC'; }
+.pdf:lang(zh-TW) .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK TC'; }
+.pdf:lang(ko-KR) .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK KR'; }
+.highlight-default {
+	color: rgba(55, 53, 47, 1);
+}
+.highlight-gray {
+	color: rgba(120, 119, 116, 1);
+	fill: rgba(120, 119, 116, 1);
+}
+.highlight-brown {
+	color: rgba(159, 107, 83, 1);
+	fill: rgba(159, 107, 83, 1);
+}
+.highlight-orange {
+	color: rgba(217, 115, 13, 1);
+	fill: rgba(217, 115, 13, 1);
+}
+.highlight-yellow {
+	color: rgba(203, 145, 47, 1);
+	fill: rgba(203, 145, 47, 1);
+}
+.highlight-teal {
+	color: rgba(68, 131, 97, 1);
+	fill: rgba(68, 131, 97, 1);
+}
+.highlight-blue {
+	color: rgba(51, 126, 169, 1);
+	fill: rgba(51, 126, 169, 1);
+}
+.highlight-purple {
+	color: rgba(144, 101, 176, 1);
+	fill: rgba(144, 101, 176, 1);
+}
+.highlight-pink {
+	color: rgba(193, 76, 138, 1);
+	fill: rgba(193, 76, 138, 1);
+}
+.highlight-red {
+	color: rgba(212, 76, 71, 1);
+	fill: rgba(212, 76, 71, 1);
+}
+.highlight-default_background {
+	color: rgba(55, 53, 47, 1);
+}
+.highlight-gray_background {
+	background: rgba(241, 241, 239, 1);
+}
+.highlight-brown_background {
+	background: rgba(244, 238, 238, 1);
+}
+.highlight-orange_background {
+	background: rgba(251, 236, 221, 1);
+}
+.highlight-yellow_background {
+	background: rgba(251, 243, 219, 1);
+}
+.highlight-teal_background {
+	background: rgba(237, 243, 236, 1);
+}
+.highlight-blue_background {
+	background: rgba(231, 243, 248, 1);
+}
+.highlight-purple_background {
+	background: rgba(244, 240, 247, 0.8);
+}
+.highlight-pink_background {
+	background: rgba(249, 238, 243, 0.8);
+}
+.highlight-red_background {
+	background: rgba(253, 235, 236, 1);
+}
+.block-color-default {
+	color: inherit;
+	fill: inherit;
+}
+.block-color-gray {
+	color: rgba(120, 119, 116, 1);
+	fill: rgba(120, 119, 116, 1);
+}
+.block-color-brown {
+	color: rgba(159, 107, 83, 1);
+	fill: rgba(159, 107, 83, 1);
+}
+.block-color-orange {
+	color: rgba(217, 115, 13, 1);
+	fill: rgba(217, 115, 13, 1);
+}
+.block-color-yellow {
+	color: rgba(203, 145, 47, 1);
+	fill: rgba(203, 145, 47, 1);
+}
+.block-color-teal {
+	color: rgba(68, 131, 97, 1);
+	fill: rgba(68, 131, 97, 1);
+}
+.block-color-blue {
+	color: rgba(51, 126, 169, 1);
+	fill: rgba(51, 126, 169, 1);
+}
+.block-color-purple {
+	color: rgba(144, 101, 176, 1);
+	fill: rgba(144, 101, 176, 1);
+}
+.block-color-pink {
+	color: rgba(193, 76, 138, 1);
+	fill: rgba(193, 76, 138, 1);
+}
+.block-color-red {
+	color: rgba(212, 76, 71, 1);
+	fill: rgba(212, 76, 71, 1);
+}
+.block-color-default_background {
+	color: inherit;
+	fill: inherit;
+}
+.block-color-gray_background {
+	background: rgba(241, 241, 239, 1);
+}
+.block-color-brown_background {
+	background: rgba(244, 238, 238, 1);
+}
+.block-color-orange_background {
+	background: rgba(251, 236, 221, 1);
+}
+.block-color-yellow_background {
+	background: rgba(251, 243, 219, 1);
+}
+.block-color-teal_background {
+	background: rgba(237, 243, 236, 1);
+}
+.block-color-blue_background {
+	background: rgba(231, 243, 248, 1);
+}
+.block-color-purple_background {
+	background: rgba(244, 240, 247, 0.8);
+}
+.block-color-pink_background {
+	background: rgba(249, 238, 243, 0.8);
+}
+.block-color-red_background {
+	background: rgba(253, 235, 236, 1);
+}
+.select-value-color-uiBlue { background-color: rgba(35, 131, 226, .07); }
+.select-value-color-pink { background-color: rgba(245, 224, 233, 1); }
+.select-value-color-purple { background-color: rgba(232, 222, 238, 1); }
+.select-value-color-green { background-color: rgba(219, 237, 219, 1); }
+.select-value-color-gray { background-color: rgba(227, 226, 224, 1); }
+.select-value-color-transparentGray { background-color: rgba(227, 226, 224, 0); }
+.select-value-color-translucentGray { background-color: rgba(0, 0, 0, 0.06); }
+.select-value-color-orange { background-color: rgba(250, 222, 201, 1); }
+.select-value-color-brown { background-color: rgba(238, 224, 218, 1); }
+.select-value-color-red { background-color: rgba(255, 226, 221, 1); }
+.select-value-color-yellow { background-color: rgba(253, 236, 200, 1); }
+.select-value-color-blue { background-color: rgba(211, 229, 239, 1); }
+.select-value-color-pageGlass { background-color: undefined; }
+.select-value-color-washGlass { background-color: undefined; }
+
+.checkbox {
+	display: inline-flex;
+	vertical-align: text-bottom;
+	width: 16;
+	height: 16;
+	background-size: 16px;
+	margin-left: 2px;
+	margin-right: 5px;
+}
+
+.checkbox-on {
+	background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%0A%3Crect%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22%2358A9D7%22%2F%3E%0A%3Cpath%20d%3D%22M6.71429%2012.2852L14%204.9995L12.7143%203.71436L6.71429%209.71378L3.28571%206.2831L2%207.57092L6.71429%2012.2852Z%22%20fill%3D%22white%22%2F%3E%0A%3C%2Fsvg%3E");
+}
+
+.checkbox-off {
+	background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%0A%3Crect%20x%3D%220.75%22%20y%3D%220.75%22%20width%3D%2214.5%22%20height%3D%2214.5%22%20fill%3D%22white%22%20stroke%3D%22%2336352F%22%20stroke-width%3D%221.5%22%2F%3E%0A%3C%2Fsvg%3E");
+}
+	
+</style></head><body><article id="11d17eee-0cbb-8008-882e-c4f82d3ee5e1" class="page sans"><header><img class="page-cover-image" src="https://www.notion.so/images/page-cover/gradients_10.jpg" style="object-position:center 32.32000000000001%"/><div class="page-header-icon page-header-icon-with-cover"><img class="icon" src="clustering.png"/></div><h1 class="page-title">Clustering Comparison: K-Medoids vs DBSCAN</h1><p class="page-description"></p></header><div class="page-body"><p id="11d17eee-0cbb-808e-a60f-f82df20d4910" class="">
+</p><div id="11d17eee-0cbb-8086-9a61-f45d2c284cf3" class="column-list"><div id="11d17eee-0cbb-80aa-8660-f690ed3aa958" style="width:43.75%" class="column"><nav id="11d17eee-0cbb-80bb-acbd-cd240511e198" class="block-color-gray table_of_contents"><div class="table_of_contents-item table_of_contents-indent-0"><a class="table_of_contents-link" href="#11d17eee-0cbb-8097-8e78-c6f84d6c4795">Introduction</a></div><div class="table_of_contents-item table_of_contents-indent-0"><a class="table_of_contents-link" href="#11d17eee-0cbb-805c-8a21-ef10020a1bc6">Code Examples</a></div><div class="table_of_contents-item table_of_contents-indent-1"><a class="table_of_contents-link" href="#11d17eee-0cbb-80be-b26a-db9a3c0f69d5">K-Medoids</a></div><div class="table_of_contents-item table_of_contents-indent-1"><a class="table_of_contents-link" href="#11d17eee-0cbb-80b6-8f5f-e86391742d20">DBSCAN</a></div><div class="table_of_contents-item table_of_contents-indent-0"><a class="table_of_contents-link" href="#11d17eee-0cbb-809b-9b67-decf233b8eee">Comparison</a></div><div class="table_of_contents-item table_of_contents-indent-1"><a class="table_of_contents-link" href="#11d17eee-0cbb-809a-8c64-fad85e71096b">Evaluation Criteria</a></div><div class="table_of_contents-item table_of_contents-indent-1"><a class="table_of_contents-link" href="#11d17eee-0cbb-8009-8d92-eac362b751bf">Both Algorithms Perform Accurately</a></div><div class="table_of_contents-item table_of_contents-indent-2"><a class="table_of_contents-link" href="#3e764a9c-52c9-49b5-a009-824daf31070d">K-Medoids</a></div><div class="table_of_contents-item table_of_contents-indent-2"><a class="table_of_contents-link" href="#87235827-efd2-41d7-8a60-acef0116023c">DBSCAN</a></div><div class="table_of_contents-item table_of_contents-indent-1"><a class="table_of_contents-link" href="#11d17eee-0cbb-80ae-9b26-e40fc5e28f0e">DBSCAN Performs Better</a></div><div class="table_of_contents-item table_of_contents-indent-2"><a class="table_of_contents-link" href="#906b8de5-b141-450c-b0a9-99a59ea8b5de">K-Medoids</a></div><div class="table_of_contents-item table_of_contents-indent-2"><a class="table_of_contents-link" href="#e3cbf4bd-f005-4cfa-a545-8c8ac5e601e2">DBSCAN</a></div><div class="table_of_contents-item table_of_contents-indent-2"><a class="table_of_contents-link" href="#06055ffa-e9c3-47dc-aec1-e24453ddff67">K-Medoids</a></div><div class="table_of_contents-item table_of_contents-indent-2"><a class="table_of_contents-link" href="#7c0c8db6-54b6-4ffa-a1ff-5e1425e0f7d2">DBSCAN</a></div><div class="table_of_contents-item table_of_contents-indent-0"><a class="table_of_contents-link" href="#11d17eee-0cbb-807a-b560-eeb392992b39">Results</a></div><div class="table_of_contents-item table_of_contents-indent-0"><a class="table_of_contents-link" href="#11f17eee-0cbb-80c8-a336-db635744fd26">Real World Data</a></div><div class="table_of_contents-item table_of_contents-indent-1"><a class="table_of_contents-link" href="#882a77f9-b03b-4b25-a87f-2446bd03fb63">K-Medoids</a></div><div class="table_of_contents-item table_of_contents-indent-1"><a class="table_of_contents-link" href="#9c6f9284-ca72-4ece-b4a4-b5b76b861ed2">DBSCAN</a></div></nav></div><div id="11d17eee-0cbb-80bb-a082-f1dd9d297e3c" style="width:56.25%" class="column"><h1 id="11d17eee-0cbb-8097-8e78-c6f84d6c4795" class="">Introduction</h1><p id="11d17eee-0cbb-802b-a1bb-dc067803a68c" class="">This document compares two popular clustering algorithms: <strong>K-Medoids</strong> and <strong>DBSCAN</strong>.</p><ul id="11d17eee-0cbb-8065-b5c8-d18e67258187" class="bulleted-list"><li style="list-style-type:disc"><strong>K-Medoids:</strong> This method uses actual data points as cluster centers (called medoids). It&#x27;s better at handling outliers and works well for round-shaped clusters.</li></ul><ul id="11d17eee-0cbb-8053-b6f6-eaefd1374799" class="bulleted-list"><li style="list-style-type:disc"><strong>DBSCAN:</strong> This algorithm finds clusters based on how dense the data points are. It can spot clusters of any shape and deals well with noise. You don&#x27;t need to tell it how many clusters to look for.</li></ul><p id="11d17eee-0cbb-80de-b200-d36d55682b86" class="">
+</p></div></div><hr id="11d17eee-0cbb-802c-87ce-c84556c5b1b9"/><h1 id="11d17eee-0cbb-805c-8a21-ef10020a1bc6" class="">Code Examples</h1><h2 id="11d17eee-0cbb-80be-b26a-db9a3c0f69d5" class="">K-Medoids</h2><p id="11e17eee-0cbb-800a-82d9-e6406c3bcb7f" class="">Following is an implementation of K-Medoids clustering algorithm. For convenance data points are taken form .csv file. </p><ul id="19317eee-0cbb-8099-ba39-ec46ef0eb3c3" class="toggle"><li><details open=""><summary>Code</summary><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="11d17eee-0cbb-804b-853b-fde77a490051" class="code"><code class="language-Python" style="white-space:pre-wrap;word-break:break-all">import pandas as pd
+import numpy as np
+import random
+
+# Set the norm type for distance calculations
+NORM_TYPE = &#x27;L2&#x27;  # Options: &#x27;L1&#x27;, &#x27;L2&#x27;, &#x27;L∞&#x27;
+
+# Load and clean the data from a CSV file.
+def load_clustering_data(file_path: str):
+    # Convert all columns to numeric values and drop rows with missing values
+    return pd.read_csv(file_path).apply(pd.to_numeric, errors=&#x27;coerce&#x27;).dropna()
+
+# Compute distance between two points based on the selected norm type.
+def compute_distance(point1, point2):
+    if NORM_TYPE == &#x27;L1&#x27;:
+        return np.sum(np.abs(point1 - point2))  # Manhattan distance (L1 norm)
+    elif NORM_TYPE == &#x27;L2&#x27;:
+        return np.linalg.norm(point1 - point2)  # Euclidean distance (L2 norm)
+    elif NORM_TYPE == &#x27;L∞&#x27;:
+        return np.max(np.abs(point1 - point2))  # Chebyshev distance (L∞ norm)
+
+# Randomly select initial medoids from the dataset.
+def generate_initial_random_medoids(data: pd.DataFrame, k: int):
+    # Select k unique random indices from the data
+    random_indices = random.sample(range(len(data)), k)
+    # Extract the data points corresponding to the selected indices
+    return [data.iloc[idx].values.tolist() for idx in random_indices]
+
+# Assign each data point to the nearest medoid.
+def assign_clusters(data: pd.DataFrame, medoids: list):
+    cluster_assignment = []
+    for _, row in data.iterrows():
+        # Compute distances from the point to each medoid
+        distances = [compute_distance(row.values, np.array(medoid)) for medoid in medoids]
+        # Assign the point to the closest medoid
+        closest_medoid = np.argmin(distances)
+        cluster_assignment.append(int(closest_medoid))
+    return cluster_assignment
+
+# Calculate new medoids for each cluster based on the assigned points.
+def calculate_new_medoids(data: pd.DataFrame, cluster_assignment: list, k: int):
+    new_medoids = []
+    for cluster_idx in range(k):
+        # Get all points assigned to the current cluster
+        cluster_points = data[np.array(cluster_assignment) == cluster_idx]
+        if len(cluster_points) &gt; 0:
+            # Compute the total distance between each point and all other points in the cluster
+            distances = cluster_points.apply(lambda point: np.sum(
+                [compute_distance(point.values, other_point)
+                 for other_point in cluster_points.values]), axis=1)
+            # Find the point with the minimum total distance to others (the new medoid)
+            medoid_idx = distances.idxmin()
+            new_medoids.append(cluster_points.loc[medoid_idx].values.tolist())
+    return new_medoids
+
+# Main K-Medoids clustering function.
+def cluster_by_k_medoids(file_path: str, k: int, maxIter: int):
+    # Load the dataset
+    data = load_clustering_data(file_path)
+    # Generate initial random medoids
+    medoids = generate_initial_random_medoids(data, k)
+    # Assign points to initial clusters based on the medoids
+    cluster_assignment = assign_clusters(data, medoids)
+
+    for _ in range(maxIter):
+        # Recalculate medoids for each cluster
+        medoids = calculate_new_medoids(data, cluster_assignment, k)
+        # Reassign points to clusters based on the new medoids
+        new_cluster_assignment = assign_clusters(data, medoids)
+        # If cluster assignments don&#x27;t change, stop iterating (convergence)
+        if new_cluster_assignment == cluster_assignment:
+            break
+        # Update the cluster assignments
+        cluster_assignment = new_cluster_assignment
+
+    return medoids, cluster_assignment
+
+
+if __name__ == &quot;__main__&quot;:
+    file_path = &#x27;data.csv&#x27;  # Path to the dataset
+    k = 3  # Number of clusters
+    maxIter = 100  # Maximum number of iterations
+
+    # Execute K-Medoids clustering
+    final_medoids, final_assignment = cluster_by_k_medoids(file_path, k, maxIter)
+    print(&quot;Final Medoids:&quot;, final_medoids)
+    print(&quot;Final Cluster Assignment:&quot;, final_assignment)</code></pre></details></li></ul><h2 id="11d17eee-0cbb-80b6-8f5f-e86391742d20" class="">DBSCAN</h2><p id="11e17eee-0cbb-8097-b2c0-e38db57e7219" class="">Density-Based Spatial Clustering of Applications with Noise is a clustering algorithm based on intuitive notion of clusters and noise. The idea is that each cluster point neighborhood has to contain minimum number of points.</p><ul id="19317eee-0cbb-80cc-948e-c269480397ed" class="toggle"><li><details open=""><summary>Code</summary><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="11e17eee-0cbb-803b-98c0-fe965c4db6cc" class="code"><code class="language-Python" style="white-space:pre-wrap;word-break:break-all">import pandas as pd
+import numpy as np
+
+# Set the norm type for distance calculation
+NORM_TYPE = &#x27;L2&#x27;  # Options: &#x27;L1&#x27;, &#x27;L2&#x27;, &#x27;L∞&#x27;
+
+# Load and preprocess the data from a CSV file
+def load_clustering_data(file_path: str):
+    # Load the dataset, convert columns to numeric, and drop rows with missing values
+    return pd.read_csv(file_path).apply(pd.to_numeric, errors=&#x27;coerce&#x27;).dropna()
+
+# Calculate the norm (distance) between two points based on the selected norm type
+def calculate_norm(point1, point2):
+    if NORM_TYPE == &#x27;L1&#x27;:
+        return np.sum(np.abs(np.array(point1) - np.array(point2)))  # Manhattan distance
+    elif NORM_TYPE == &#x27;L2&#x27;:
+        return np.linalg.norm(np.array(point1) - np.array(point2))  # Euclidean distance
+    elif NORM_TYPE == &#x27;L∞&#x27;:
+        return np.max(np.abs(np.array(point1) - np.array(point2)))  # Chebyshev distance
+
+# Find all neighbors of a point that are within the given epsilon (eps) radius
+def find_neighbors(data: pd.DataFrame, point_index: int, eps: float):
+    neighbors = []
+    # Loop through all points and calculate distance to the point_index
+    for idx in range(len(data)):
+        if calculate_norm(data.iloc[point_index], data.iloc[idx]) &lt;= eps:
+            neighbors.append(idx)  # Append if within eps distance
+    return neighbors
+
+# Expand the cluster by visiting all density-reachable points
+def expand_cluster(data: pd.DataFrame, cluster_assignment: list, point_index: int, neighbors: list, cluster_id: int,
+                   eps: float, min_pts: int):
+    # Assign the current point to the current cluster
+    cluster_assignment[point_index] = cluster_id
+    i = 0
+    # Expand by visiting all neighbors
+    while i &lt; len(neighbors):
+        neighbor_idx = neighbors[i]
+        if cluster_assignment[neighbor_idx] == -1:  # If previously marked as noise, add to cluster
+            cluster_assignment[neighbor_idx] = cluster_id
+        elif cluster_assignment[neighbor_idx] == 0:  # If it&#x27;s an unvisited point
+            cluster_assignment[neighbor_idx] = cluster_id
+            # Find neighbors of the current neighbor
+            new_neighbors = find_neighbors(data, neighbor_idx, eps)
+            # If new_neighbors are dense enough, include them in the expansion
+            if len(new_neighbors) &gt;= min_pts:
+                neighbors.extend(new_neighbors)
+        i += 1
+
+# DBSCAN (Density-Based Spatial Clustering of Applications with Noise) algorithm
+def cluster_by_dbscan(file_path: str, eps: float, min_samples: int):
+    # Load the data
+    data = load_clustering_data(file_path)
+    # Initialize all points as unvisited (0)
+    cluster_labels = [0] * len(data)  # 0 means unvisited
+    cluster_id = 0
+
+    # Iterate over each point in the dataset
+    for point_idx in range(len(data)):
+        if cluster_labels[point_idx] != 0:  # Skip already visited points
+            contin
+        # Find neighbors within epsilon distance
+        neighbors = find_neighbors(data, point_idx, eps)
+        if len(neighbors) &lt; min_samples:  # Not enough neighbors to form a cluster, mark as noise (-1)
+            cluster_labels[point_idx] = -1
+        else:
+            # Start a new cluster if neighbors meet the min_samples condition
+            cluster_id += 1  # Increment cluster ID
+            expand_cluster(data, cluster_labels, point_idx, neighbors, cluster_id, eps, min_samples)
+
+    return cluster_labels  # Return the cluster labels for all points
+
+
+if __name__ == &#x27;__main__&#x27;:
+    file_path = &#x27;data.csv&#x27;  # Path to the dataset
+    eps = 0.25  # Radius that defines the neighborhood
+    min_pts = 10  # Minimum number of points to form a dense region (cluster)
+    
+    # Run DBSCAN clustering
+    cluster_labels = cluster_by_dbscan(file_path, eps, min_pts)
+    print(cluster_labels)  # Output the cluster labels
+</code></pre></details></li></ul><p id="11d17eee-0cbb-802c-9858-ebfe065064bc" class="">
+</p><hr id="11d17eee-0cbb-809e-87e9-d839cce0e762"/><h1 id="11d17eee-0cbb-809b-9b67-decf233b8eee" class="">Comparison</h1><h2 id="11d17eee-0cbb-809a-8c64-fad85e71096b" class="">Evaluation Criteria</h2><p id="11f17eee-0cbb-8045-ab08-c67fa5cd6c11" class="">To compare the clustering algorithms, we&#x27;ll use both visual and numerical evaluations. The numerical evaluations will be based on two widely-used metrics:</p><ul id="3c11704b-2160-43a1-bcd0-991e3ca4a392" class="bulleted-list"><li style="list-style-type:disc">Davies-Bouldin Index: Measures the average similarity between each cluster and its most similar cluster. Lower values indicate better clustering.</li></ul><ul id="6212db07-0c2b-4208-a3d9-dc82152aae90" class="bulleted-list"><li style="list-style-type:disc">Calinski-Harabasz Score: Evaluates the cluster validity based on the average between- and within-cluster sum of squares. Higher scores indicate better-defined clusters.</li></ul><p id="76481f43-3d46-499b-be80-2ab79f3120d8" class="">The table below provides a general interpretation guide for these metrics:</p><table id="11f17eee-0cbb-80c2-8a9d-ea269466e80a" class="simple-table"><thead class="simple-table-header"><tr id="18400a84-23ab-41c8-8cc4-265d1d5de7ae"><th id="Kg&gt;=" class="simple-table-header-color simple-table-header" style="width:203.8px">Evaluation Type</th><th id="~`{C" class="simple-table-header-color simple-table-header" style="width:203.8px">Very Good</th><th id="~CQ]" class="simple-table-header-color simple-table-header" style="width:203.8px">Good</th><th id="PYIc" class="simple-table-header-color simple-table-header" style="width:203.8px">Fair</th><th id="mSeU" class="simple-table-header-color simple-table-header" style="width:203.8px">Poor</th></tr></thead><tbody><tr id="2df525c2-5a26-4d2a-bc47-61f396ea9299"><th id="Kg&gt;=" class="simple-table-header-color simple-table-header" style="width:203.8px">Davies-Bouldin Index</th><td id="~`{C" class="" style="width:203.8px">0.0 to 0.3</td><td id="~CQ]" class="" style="width:203.8px">0.3 to 0.8 </td><td id="PYIc" class="" style="width:203.8px">0.8 to 2.0</td><td id="mSeU" class="" style="width:203.8px">&gt; 2.0</td></tr><tr id="d38884be-1bc4-4d84-98ab-30f7c70d4b66"><th id="Kg&gt;=" class="simple-table-header-color simple-table-header" style="width:203.8px">Calinski-Harabasz Score</th><td id="~`{C" class="" style="width:203.8px">100+</td><td id="~CQ]" class="" style="width:203.8px">100 to 50</td><td id="PYIc" class="" style="width:203.8px">30 to 10</td><td id="mSeU" class="" style="width:203.8px">10 to 1</td></tr></tbody></table><p id="11f17eee-0cbb-80d1-9065-f565915243c8" class="">This evaluation metrics are to be found under python <mark class="highlight-gray_background"> </mark><mark class="highlight-teal"><mark class="highlight-gray_background">sklearn.metrics</mark></mark><mark class="highlight-gray_background"> </mark> library. As for visualization I am using <mark class="highlight-teal"><mark class="highlight-gray_background"> matplotlib </mark></mark> library. </p><h2 id="11d17eee-0cbb-8009-8d92-eac362b751bf" class="">Both Algorithms Perform Accurately</h2><p id="11f17eee-0cbb-80c1-8ee9-f0335c828f89" class="">For this example, let&#x27;s examine well-separated clusters of three distinct groups.</p><figure id="11f17eee-0cbb-804e-8723-c2ed8d5b879d"><div class="source"><a href="blob_dataset.csv">blob_dataset.csv</a></div></figure><div id="11f17eee-0cbb-8001-8deb-c3a240a0138d" class="column-list"><div id="f669be5f-f998-4320-b8e7-6bea9dbcce32" style="width:50%" class="column"><h3 id="3e764a9c-52c9-49b5-a009-824daf31070d" class="">K-Medoids</h3><p id="11f17eee-0cbb-80e3-906e-e57086f0015a" class=""><mark class="highlight-gray_background"> k = 3 </mark></p><p id="11f17eee-0cbb-80d3-9460-c631d779288d" class=""><mark class="highlight-gray_background"> max_iter = 100 </mark></p><figure id="11f17eee-0cbb-802d-a8e7-d2a40e106a72" class="image"><a href="Figure_1.png"><img style="width:685px" src="Figure_1.png"/></a></figure><table id="c3a579dd-ecde-4d53-aa7f-bc8c163b1e44" class="simple-table"><thead class="simple-table-header"><tr id="e7ad498a-6c29-4686-83d1-8618921eac32"><th id="bgOV" class="simple-table-header-color simple-table-header">Evaluation Type</th><th id="Z=W:" class="simple-table-header-color simple-table-header">Score</th><th id=":IKP" class="simple-table-header-color simple-table-header">Rating</th></tr></thead><tbody><tr id="beee6aac-5dc7-4b6c-8303-ef8760a44f8b"><th id="bgOV" class="simple-table-header-color simple-table-header">Davies-Bouldin</th><td id="Z=W:" class="">0.207</td><td id=":IKP" class="">Very Good</td></tr><tr id="32fad1e9-800b-4e52-b51c-278e406dc7e7"><th id="bgOV" class="simple-table-header-color simple-table-header">Calinski-Harabasz</th><td id="Z=W:" class="">4196.295</td><td id=":IKP" class="">Very Good</td></tr></tbody></table><p id="11d17eee-0cbb-8031-8ecb-ed3b1dcfc899" class="">This clustering represents the best possible outcome, as verified visually and supported by the numerical results.</p></div><div id="5e3bb22c-f6d0-423b-8719-9123cc20f951" style="width:50%" class="column"><h3 id="87235827-efd2-41d7-8a60-acef0116023c" class="">DBSCAN</h3><p id="11f17eee-0cbb-80d8-a07b-e4fdd1efdb29" class=""><mark class="highlight-gray_background">eps = 1.1 </mark></p><p id="11f17eee-0cbb-80f2-b97c-f6cf4f3842f4" class=""><mark class="highlight-gray_background"> min_pts = 5 </mark></p><figure id="11f17eee-0cbb-80b2-ac12-e807dd2455be" class="image"><a href="Figure_2.png"><img style="width:685px" src="Figure_2.png"/></a></figure><table id="3a4d7d37-d68a-4bc7-971e-c2699103315d" class="simple-table"><thead class="simple-table-header"><tr id="5ae85cb7-61ac-4680-96ae-0021a6b494fc"><th id="bgOV" class="simple-table-header-color simple-table-header">Evaluation Type</th><th id="Z=W:" class="simple-table-header-color simple-table-header">Score</th><th id="MMMs" class="simple-table-header-color simple-table-header">Rating</th></tr></thead><tbody><tr id="59072bcd-d0c1-42c7-a49f-2c947233f0ba"><th id="bgOV" class="simple-table-header-color simple-table-header">Davies-Bouldin</th><td id="Z=W:" class="">0.212</td><td id="MMMs" class="">Very Good</td></tr><tr id="27621fb2-54df-42ee-84ae-34577f15ccf6"><th id="bgOV" class="simple-table-header-color simple-table-header">Calinski-Harabasz</th><td id="Z=W:" class="">3678.678</td><td id="MMMs" class="">Very Good</td></tr></tbody></table><p id="5f1eb7b0-e972-430f-bb8e-b82d1b9fffb8" class="">The scores are nearly identical to those of K-medoids, and DBSCAN also identified outliers as noise. </p></div></div><h2 id="11d17eee-0cbb-80ae-9b26-e40fc5e28f0e" class="">DBSCAN Performs Better</h2><p id="11f17eee-0cbb-8099-a224-c549b6416019" class="">DBSCAN is great for identifying clusters with irregular shapes and varying densities, like concentric circles. K-medoids, on the other hand, works best with compact, spherical clusters of similar size. Here are two examples:</p><figure id="11f17eee-0cbb-8050-b2ff-d51656684054"><div class="source"><a href="concentric_circles.csv">concentric_circles.csv</a></div></figure><figure id="11f17eee-0cbb-80af-91c0-fabf7ac72ebd"><div class="source"><a href="moons.csv">moons.csv</a></div></figure><div id="11f17eee-0cbb-803f-9657-fb2822e1f212" class="column-list"><div id="296eaf23-0e5d-4f5c-9866-a3049167801f" style="width:50%" class="column"><h3 id="906b8de5-b141-450c-b0a9-99a59ea8b5de" class="">K-Medoids</h3><p id="11f17eee-0cbb-80ae-84b7-e2f940142012" class=""><mark class="highlight-gray_background"> k = 2 </mark></p><p id="11f17eee-0cbb-80af-889e-d2afa35b3663" class=""><mark class="highlight-gray_background"> max_iter = 100 </mark></p><figure id="11f17eee-0cbb-801c-8c85-e5af38b2e7aa" class="image"><a href="concenctic_1.png"><img style="width:685px" src="concenctic_1.png"/></a></figure><table id="cdcd657a-3186-45d8-8361-0d3ad66af02d" class="simple-table"><thead class="simple-table-header"><tr id="53950cc9-48ec-4ca2-be68-3b896b0de0e7"><th id="bgOV" class="simple-table-header-color simple-table-header">Evaluation Type</th><th id="Z=W:" class="simple-table-header-color simple-table-header">Score</th><th id="j\t|" class="simple-table-header-color simple-table-header">Rating</th></tr></thead><tbody><tr id="4de9b08b-d96e-4d5b-ab23-13f40ce7a6f7"><th id="bgOV" class="simple-table-header-color simple-table-header">Davies-Bouldin</th><td id="Z=W:" class="">1.574</td><td id="j\t|" class="">Fair</td></tr><tr id="80fdfb08-9f04-43b3-915e-5f95b83c1cc2"><th id="bgOV" class="simple-table-header-color simple-table-header">Calinski-Harabasz</th><td id="Z=W:" class="">45.562</td><td id="j\t|" class="">Good</td></tr></tbody></table><p id="6f03242e-7a80-4007-8994-039dc648d951" class="">As expected, k-medoids clusters data based on centroids, thus splitting data points in half.</p></div><div id="94400a64-c9bd-4ed7-9cb6-d428acedcb98" style="width:50%" class="column"><h3 id="e3cbf4bd-f005-4cfa-a545-8c8ac5e601e2" class="">DBSCAN</h3><p id="11f17eee-0cbb-8026-9827-d0530051ddb8" class=""><mark class="highlight-gray_background">eps = 0.1  </mark></p><p id="11f17eee-0cbb-8056-bdf3-e65bb810e4c5" class=""><mark class="highlight-gray_background">min_pts = 5</mark></p><figure id="11f17eee-0cbb-804a-95d9-f62fb4ff523b" class="image"><a href="Figure_2%201.png"><img style="width:685px" src="Figure_2%201.png"/></a></figure><table id="5fdcbb89-04b4-4f36-a96e-750e2ad7ee65" class="simple-table"><thead class="simple-table-header"><tr id="5964c930-2203-4216-83bd-51cd7dd2b09a"><th id="bgOV" class="simple-table-header-color simple-table-header" style="width:133px">Evaluation Type</th><th id="Z=W:" class="simple-table-header-color simple-table-header" style="width:140px">Score</th><th id="GbuR" class="simple-table-header-color simple-table-header">Rating</th></tr></thead><tbody><tr id="3bd03f9f-47d2-4811-b8c0-4bc15f89f442"><th id="bgOV" class="simple-table-header-color simple-table-header" style="width:133px">Davies-Bouldin</th><td id="Z=W:" class="" style="width:140px">0.009</td><td id="GbuR" class="">Very Good</td></tr><tr id="e74f0b5d-714d-480a-a480-f70887bdd30c"><th id="bgOV" class="simple-table-header-color simple-table-header" style="width:133px">Calinski-Harabasz</th><td id="Z=W:" class="" style="width:140px">175.144</td><td id="GbuR" class="">Very Good</td></tr></tbody></table><p id="3ee12993-c3db-4fb4-b058-5ef95f29b8ab" class="">Since DBSCAN is good for clustering irregular shapes. It clustered this data well. One ring for each cluster.</p></div></div><p id="11f17eee-0cbb-80f4-97c8-c4c0f6740bf8" class="">
+</p><div id="11f17eee-0cbb-80ff-98df-db36cd856fb8" class="column-list"><div id="d74f40b7-c35d-4e3c-ad99-6a1ff1b129dc" style="width:50%" class="column"><h3 id="06055ffa-e9c3-47dc-aec1-e24453ddff67" class="">K-Medoids</h3><p id="e1635d0c-ccda-4a89-90d3-4b48fa077bfa" class=""><mark class="highlight-gray_background"> k = 2 </mark></p><p id="565a7a17-f2de-4e3a-9952-37962270328b" class=""><mark class="highlight-gray_background"> max_iter = 100 </mark></p><figure id="11f17eee-0cbb-80f9-b3b2-ff888e2c1899" class="image"><a href="Figure_1%201.png"><img style="width:685px" src="Figure_1%201.png"/></a></figure><table id="893954e8-9cdc-4588-b5f8-3dba0e88deb2" class="simple-table"><thead class="simple-table-header"><tr id="b77bf479-cc06-4283-90fa-7c2565bc63d0"><th id="bgOV" class="simple-table-header-color simple-table-header">Evaluation Type</th><th id="Z=W:" class="simple-table-header-color simple-table-header">Score</th><th id="j\t|" class="simple-table-header-color simple-table-header">Rating</th></tr></thead><tbody><tr id="fd64bbe4-4c8f-4eae-b187-b2acd97cf013"><th id="bgOV" class="simple-table-header-color simple-table-header">Davies-Bouldin</th><td id="Z=W:" class="">0.875</td><td id="j\t|" class="">Fair</td></tr><tr id="bea6883d-28e1-46f3-bb95-596403863ea2"><th id="bgOV" class="simple-table-header-color simple-table-header">Calinski-Harabasz</th><td id="Z=W:" class="">57.665</td><td id="j\t|" class="">Good</td></tr></tbody></table><p id="ce153ab7-f3b2-4103-bdf9-cfde126903c5" class="">As expected, k-medoids clusters data based on centroids, thus drawing middle line between two moons.</p></div><div id="f8c742aa-b131-4693-ab14-3f62c7dcfad9" style="width:50%" class="column"><h3 id="7c0c8db6-54b6-4ffa-a1ff-5e1425e0f7d2" class="">DBSCAN</h3><p id="c97a611e-2052-4e4a-9c2a-c9620bc0fa50" class=""><mark class="highlight-gray_background">eps = 0.1  </mark></p><p id="c5360e2b-9d13-4d0d-a1ab-a32b252a6236" class=""><mark class="highlight-gray_background">min_pts = 5</mark></p><figure id="11f17eee-0cbb-807e-bae3-da7590f3bba4" class="image"><a href="Figure_2%202.png"><img style="width:685px" src="Figure_2%202.png"/></a></figure><table id="cc33c629-5583-452a-9cab-058b83a128bd" class="simple-table"><thead class="simple-table-header"><tr id="c946fe95-b30b-4673-9796-c71f38959ae7"><th id="bgOV" class="simple-table-header-color simple-table-header" style="width:133px">Evaluation Type</th><th id="Z=W:" class="simple-table-header-color simple-table-header" style="width:140px">Score</th><th id="GbuR" class="simple-table-header-color simple-table-header">Rating</th></tr></thead><tbody><tr id="4dcde3a4-2adc-4aac-9bb2-ed891b11be85"><th id="bgOV" class="simple-table-header-color simple-table-header" style="width:133px">Davies-Bouldin</th><td id="Z=W:" class="" style="width:140px">0.166</td><td id="GbuR" class="">Very Good</td></tr><tr id="9a525ab4-a6aa-4478-ba84-ef656fbc49fa"><th id="bgOV" class="simple-table-header-color simple-table-header" style="width:133px">Calinski-Harabasz</th><td id="Z=W:" class="" style="width:140px">258.025</td><td id="GbuR" class="">Very Good</td></tr></tbody></table><p id="cc327e84-870c-43a5-bf31-f6425398dc9a" class="">Since DBSCAN is good for clustering irregular shapes. It clustered this data well. One moon for each cluster.</p></div></div><p id="11f17eee-0cbb-80bc-87ff-c1604f9c0bb1" class="">
+</p><hr id="11d17eee-0cbb-8020-a829-ee8f967ba2ce"/><h1 id="11d17eee-0cbb-807a-b560-eeb392992b39" class="">Results</h1><p id="11f17eee-0cbb-806f-b3aa-d029e48727ce" class="">K-Medoids and DBSCAN both performed well on datasets with well-separated blobs, accurately identifying clusters. However, DBSCAN struggled with scattered plots where clusters were not distinctly separated, failing to form coherent groups due to varying densities. In contrast, K-Medoids managed to assign points to clusters in these situations. Conversely, DBSCAN excelled with irregularly shaped clusters, leveraging its density-based approach, while K-Medoids may struggle since it relies on defined centroids. Overall, K-Medoids is better for well-separated clusters, while DBSCAN is more suited for irregular shapes, though it faces challenges with scattered data with its density difference.</p><hr id="11f17eee-0cbb-80ff-859a-e687bf559529"/><h1 id="11f17eee-0cbb-80c8-a336-db635744fd26" class="">Real World Data</h1><p id="11f17eee-0cbb-8047-b74e-d74214507999" class="">For the real world data example I took recorded fatal bear accidents in USA since 1900 to present day, source: <mark class="highlight-blue"><mark class="highlight-gray_background"><a href="https://www.kaggle.com/datasets/stealthtechnologies/bear-attacks-north-america/data">dataset</a></mark></mark>. I grouped entries according to age groups, giving me correlation between ages and number of attacks. </p><figure id="11f17eee-0cbb-80e6-8ae2-faa97754733e"><div class="source"><a href="Processed_BearAttacks.csv">Processed_BearAttacks.csv</a></div></figure><p id="11f17eee-0cbb-8068-9359-ff5c1d8283da" class="">Here is how processed data looks like clustered via K-Medoids and DBSCAN.</p><p id="11f17eee-0cbb-804c-91e0-c6b2e3c56bc5" class="">
+</p><h3 id="882a77f9-b03b-4b25-a87f-2446bd03fb63" class="">K-Medoids</h3><figure id="11f17eee-0cbb-80e9-ad50-fd4cf1e4dfde" class="image"><a href="Figure_1%202.png"><img style="width:1032.2000732421875px" src="Figure_1%202.png"/></a></figure><h3 id="9c6f9284-ca72-4ece-b4a4-b5b76b861ed2" class="">DBSCAN</h3><figure id="11f17eee-0cbb-8059-8aa3-e82b4b91a366" class="image"><a href="Figure_1%203.png"><img style="width:685px" src="Figure_1%203.png"/></a></figure><p id="11f17eee-0cbb-8078-a647-f37044b69f3e" class="">
+</p><p id="11f17eee-0cbb-80e1-84ef-c5e101979a75" class="">DBSCAN actually consistently produced 4 clusters after changing its inputs couple of times and finalized on <mark class="highlight-gray_background"> eps = 3.5 </mark> and <mark class="highlight-gray_background"> min_pts = 5 </mark><mark class="highlight-default_background">. So I decided to keep K-Medoids cluster count to 4, that is </mark><mark class="highlight-gray_background"> k = 4 </mark><mark class="highlight-default_background"> and </mark><mark class="highlight-gray_background"> max_iter = 100 </mark><mark class="highlight-default_background">.  Based on results clustered data between these two algorithms is somewhat similar, with exception of couple points being different.</mark></p><p id="11f17eee-0cbb-80f5-a1ef-ef9aff34b7db" class=""><mark class="highlight-default_background">There are 4 clear clusters. </mark></p><ul id="11f17eee-0cbb-80e7-870b-f33c6fca4e71" class="bulleted-list"><li style="list-style-type:disc">Ages 0-10 years: With average beat attacks of 2.5. </li></ul><ul id="11f17eee-0cbb-80a3-8216-d6341daefbcf" class="bulleted-list"><li style="list-style-type:disc">Ages 20-40 years: With average beat attacks of 3. </li></ul><ul id="11f17eee-0cbb-80c2-a046-de29cde0f8a7" class="bulleted-list"><li style="list-style-type:disc">Ages 40-60 years: With average beat attacks of 3. </li></ul><ul id="11f17eee-0cbb-805d-8886-f4707f63e8f8" class="bulleted-list"><li style="list-style-type:disc">Ages 65-80 years: With average beat attacks of 1.</li></ul><p id="11f17eee-0cbb-806a-acd3-f389a4596490" class="">Since both algorithms led to similar clusters, it suggests that the structure of the data was naturally divided into distinct age groups, making it easier for both DBSCAN and K-Medoids to perform in this case. </p><p id="11f17eee-0cbb-80c8-93d1-e4bc20ee6542" class="">The clustering results suggest that <strong>age is a significant factor</strong> in bear attack frequency. Specifically, younger individuals (0-10 years) and older individuals (65-80 years) experience fewer attacks compared to middle-aged individuals (20-60 years). This pattern could be linked to outdoor activity levels. <strong>Middle-aged individuals</strong>, who are typically more active in outdoor activities such as hiking, camping, and exploring wilderness areas, are likely to have more frequent encounters with bears. In contrast, <strong>younger children and elderly adults</strong> may engage less in these activities, resulting in fewer bear encounters. This indicates that activity levels associated with different age groups may play a critical role in bear attack risks.</p><p id="11f17eee-0cbb-80a5-b554-fb3fa09fbd15" class="">
+</p></div></article><span class="sans" style="font-size:14px;padding-top:2em"></span></body></html>
