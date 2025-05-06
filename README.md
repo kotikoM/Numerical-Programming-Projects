@@ -13,7 +13,6 @@ Each project is structured with a `src/` folder containing the main implementati
 
 ## 📚 Current Projects
 ### 🔹 Clustering
-Exploring various clustering algorithms such as:
 - **K-Medoids**
 - **K-Means**
 - **DBSCAN**
@@ -23,7 +22,6 @@ Exploring various clustering algorithms such as:
 - Understanding the **accuracy limitations of small floating-point values** in Python.
 
 ### 🔹 Gradient Descent Algorithms
-Experimenting with different gradient descent approaches:
 - **Batch Gradient Descent**
 - **Momentum-based Gradient Descent**
 - **Stochastic Gradient Descent**
